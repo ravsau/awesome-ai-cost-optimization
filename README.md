@@ -106,6 +106,7 @@ Side-by-side cost comparisons and calculators.
 - [Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) - AWS Bedrock model pricing
 - [Together AI Pricing](https://www.together.ai/pricing) - Open source model hosting pricing
 - [Groq Pricing](https://groq.com/pricing/) - Fast inference pricing
+- [TinyTools AI Cost Calculator](https://tinytools-smoky.vercel.app/ai-cost-calculator/) - Free browser-based calculator for estimating LLM API costs across providers, no signup, runs client-side
 
 ## Case Studies
 
