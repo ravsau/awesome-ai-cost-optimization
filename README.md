@@ -136,6 +136,7 @@ Open source tools specifically built for AI cost management.
 | [Ollama](https://ollama.com/) | Local model inference | MIT |
 | [vLLM](https://github.com/vllm-project/vllm) | High-throughput serving | Apache 2.0 |
 | [LangFuse](https://github.com/langfuse/langfuse) | Open source LLM cost analytics | MIT |
+| [milo-cost-auditor](https://github.com/miloantaeus/milo-cost-auditor-mcp) | MCP server for coding agents — audits LLM bills, scores waste, suggests routing, emits LiteLLM configs | MIT |
 
 ---
 
