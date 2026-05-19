@@ -80,6 +80,7 @@ Vector databases are one of the most overpaid line items in AI infrastructure.
 
 Agents multiply costs because they loop. Efficient agent design is cost design.
 
+- [agenttrace](https://github.com/luoyuctl/agenttrace) - Tracks AI coding-agent token, cost, latency, and failure regressions from local trace logs
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) - Agentic coding with cost tracking built in
 - [LangSmith](https://smith.langchain.com/) - Trace and monitor agent costs per run
 - [Braintrust](https://www.braintrust.dev/) - Eval and monitoring for LLM apps with cost tracking
