@@ -9,6 +9,7 @@ Most teams overspend on AI inference, underuse open source models, and run agent
 ## Contents
 
 - [Model Selection and Routing](#model-selection-and-routing)
+- [Evals and Model Comparison](#evals-and-model-comparison)
 - [Open Source Models](#open-source-models)
 - [Inference Optimization](#inference-optimization)
 - [Vector Storage and RAG Cost](#vector-storage-and-rag-cost)
@@ -34,6 +35,21 @@ Picking the right model for the right task is the single biggest cost lever. Sto
 - [RouteLLM](https://github.com/lm-sys/RouteLLM) - Framework for serving and evaluating LLM routers (from LMSYS)
 
 **Key insight:** Route 80% of requests to small/cheap models. Reserve frontier models for tasks that actually need them. Most classification, extraction, and summarization tasks don't need GPT-4 or Opus.
+
+## Evals and Model Comparison
+
+Before you can route to a cheaper model, you need to prove it's good enough on your actual tasks. Eval tools let you A/B prompts and models against a fixed dataset and compare cost, latency, and quality side-by-side.
+
+- [promptfoo](https://github.com/promptfoo/promptfoo) - Open source CLI to test prompts, models, and RAG against your own dataset. Side-by-side cost + quality matrix.
+- [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) - UK AISI's eval framework. Solid for agentic and tool-use evals.
+- [OpenAI Evals](https://github.com/openai/evals) - Open framework for evaluating LLMs and LLM systems
+- [DeepEval](https://github.com/confident-ai/deepeval) - Pytest-style LLM eval framework with cost/latency tracking
+- [Braintrust](https://www.braintrust.dev/) - Hosted eval platform with per-run cost tracking and model comparison
+- [LangFuse Evals](https://langfuse.com/docs/scores/overview) - Open source eval scoring tied to traces and cost
+- [Helicone Experiments](https://www.helicone.ai/) - Run prompt experiments against production traffic with cost deltas
+- [Ragas](https://github.com/explodinggradients/ragas) - Eval framework specifically for RAG pipelines
+
+**Key insight:** "Cheaper model" is a guess until you eval it. Build a 50-100 example dataset of your real workload, run promptfoo against 4-5 candidate models, and pick the cheapest one that clears your quality bar. Most teams skip this step and overpay forever.
 
 ## Open Source Models
 
@@ -119,8 +135,11 @@ Real-world examples of AI cost optimization.
 
 ## Articles and Blog Posts
 
+- [Everyone Needs an OpenClaw Strategy](https://www.youtube.com/@CloudYeti) - Jensen Huang said it. Here's what he actually meant: 24/7 agents need a cost strategy, not just a framework. (CloudYeti)
 - [The token-to-revenue ratio](https://cloudyeti.io/blog) - Measuring AI spend against business output (CloudYeti)
 - [S3 Vectors: 400x cheaper vector search](https://www.youtube.com/watch?v=BWURf-oVFfg) - RAG with S3 Vectors + Bedrock (CloudYeti)
+- [The Economics of $20K/month AI Agents](https://medium.com/@mcunningham1440/the-economics-of-openais-20000-month-ai-agents-26b329f301c4) - Daily rate analysis of always-on agents
+- [The True Cost of AI Agents: Hourly Pricing](https://retool.com/blog/cost-of-ai-agents-hourly-pricing-model) - Retool's agent cost framework
 
 *More articles coming. Follow [@CloudYeti](https://www.youtube.com/@CloudYeti) for updates.*
 
@@ -136,6 +155,8 @@ Open source tools specifically built for AI cost management.
 | [Ollama](https://ollama.com/) | Local model inference | MIT |
 | [vLLM](https://github.com/vllm-project/vllm) | High-throughput serving | Apache 2.0 |
 | [LangFuse](https://github.com/langfuse/langfuse) | Open source LLM cost analytics | MIT |
+| [promptfoo](https://github.com/promptfoo/promptfoo) | Eval prompts/models on your data with cost matrix | MIT |
+| [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) | Eval framework for LLMs and agents | MIT |
 
 ---
 
