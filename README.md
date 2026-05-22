@@ -156,6 +156,7 @@ Open source tools specifically built for AI cost management.
 | [Ollama](https://ollama.com/) | Local model inference | MIT |
 | [vLLM](https://github.com/vllm-project/vllm) | High-throughput serving | Apache 2.0 |
 | [LangFuse](https://github.com/langfuse/langfuse) | Open source LLM cost analytics | MIT |
+| [QuotaFlow](https://quotaflow.ai/) | Governed AI quota pooling to reduce wasted subscribed capacity | Commercial |
 | [promptfoo](https://github.com/promptfoo/promptfoo) | Eval prompts/models on your data with cost matrix | MIT |
 | [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) | Eval framework for LLMs and agents | MIT |
 
