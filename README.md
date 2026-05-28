@@ -56,6 +56,7 @@ Before you can route to a cheaper model, you need to prove it's good enough on y
 - [LangFuse Evals](https://langfuse.com/docs/scores/overview) - Open source eval scoring tied to traces and cost
 - [Helicone Experiments](https://www.helicone.ai/) - Run prompt experiments against production traffic with cost deltas
 - [Ragas](https://github.com/explodinggradients/ragas) - Eval framework specifically for RAG pipelines
+- [ai-evaluation](https://github.com/future-agi/ai-evaluation) - Open-source LLM evaluation framework with 50+ metrics, LLM-as-Judge, and guardrail scanners (jailbreak, PII, injection). Use to qualify cheaper models against your workload.
 
 **Key insight:** "Cheaper model" is a guess until you eval it. Build a 50-100 example dataset of your real workload, run promptfoo against 4-5 candidate models, and pick the cheapest one that clears your quality bar. Most teams skip this step and overpay forever.
 
@@ -181,6 +182,7 @@ You can't optimize what you don't measure. Gateways add a control plane in front
 - [LangFuse](https://github.com/langfuse/langfuse) - Open source LLM observability and cost analytics
 - [OpenMeter](https://openmeter.io/) - Usage metering for AI (track cost per customer/feature)
 - [tokencost](https://github.com/AgentOps-AI/tokencost) - $ estimates for 400+ LLMs *before* you call. AgentOps.
+- [traceAI](https://github.com/future-agi/traceAI) - Open-source OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span for downstream attribution.
 
 **Gateways:**
 
