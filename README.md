@@ -103,6 +103,7 @@ Side-by-side cost comparisons and calculators.
 
 - [LLM Price Check](https://llmpricecheck.com/) - Compare LLM API prices across providers
 - [Artificial Analysis](https://artificialanalysis.ai/) - Price/performance/speed benchmarks
+- [TinyTools AI Cost Calculator](https://tinytools-smoky.vercel.app/) - Free browser-based calculator for estimating LLM API costs across providers (OpenAI, Anthropic, Google, etc.). No signup, runs locally. Open source.
 - [Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) - AWS Bedrock model pricing
 - [Together AI Pricing](https://www.together.ai/pricing) - Open source model hosting pricing
 - [Groq Pricing](https://groq.com/pricing/) - Fast inference pricing
