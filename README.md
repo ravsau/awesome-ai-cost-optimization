@@ -201,6 +201,7 @@ Side-by-side cost comparisons and calculators.
 - [Together AI Pricing](https://www.together.ai/pricing) - Open source model hosting pricing
 - [Groq Pricing](https://groq.com/pricing/) - Fast inference pricing
 - [TinyTools AI Cost Calculator](https://tinytools-smoky.vercel.app/ai-cost-calculator/) - Free browser-based calculator for estimating LLM API costs across providers, no signup, runs client-side
+- [LegacyDoc AI LLM Cost Regression Checker](https://www.romanticode.com/tools/llm-cost-regression-checker/) - Browser-based checker for spotting LLM cost regressions before coding-agent workflows scale.
 - [LiteLLM model_prices JSON](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json) - Authoritative price table used by most cost tools.
 
 ## Patterns and Snippets
