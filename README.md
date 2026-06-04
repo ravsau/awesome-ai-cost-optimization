@@ -190,6 +190,7 @@ You can't optimize what you don't measure. Gateways add a control plane in front
 - [Kong AI Gateway](https://github.com/Kong/kong) - AI plugins on Kong's OSS gateway; rate-limit, cost-budget, semantic cache.
 - [Vercel AI Gateway](https://vercel.com/ai-gateway) - Sub-20ms routing across 100+ models.
 - [Bifrost](https://github.com/maximhq/bifrost) - Newer OSS gateway by Maxim AI; 12+ providers, streaming-aware semantic cache.
+- [FerryAPI](https://www.ferryapi.io/) - OpenAI-compatible gateway with prepaid billing, customer API keys, and usage records.
 
 ## Pricing Comparisons
 
