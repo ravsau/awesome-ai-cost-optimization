@@ -46,10 +46,15 @@ Worth it: multi-turn agents whose context grows every step — savings compound 
 
 ## 6. Commitment pricing
 
-Worth it: only after 30–60 days of telemetry shows steady volume above break-even. These discount **capacity rates, not token prices**.
+Every provider sells it; whether it pays off depends on your traffic shape. Evaluate against 30–60 days of your own telemetry. These discount **capacity rates, not token prices** (except committed-spend programs).
 
 - [Azure PTU](https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/provisioned-throughput) — hourly / monthly / yearly modes; yearly ~35% below monthly; up to ~70% vs pay-as-you-go tokens at high sustained utilization. Entry ~$2,400+/mo.
-- [Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) — per model unit; 6-month commit ~20–40% below 1-month hourly rate.
-- [nOps Bedrock guide](https://www.nops.io/blog/amazon-bedrock-pricing/)
+- [Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) — per model unit; 6-month commit ~20–40% below 1-month hourly rate. ([nOps guide](https://www.nops.io/blog/amazon-bedrock-pricing/))
+- [OpenAI Scale Tier](https://openai.com/api-scale-tier/) — token units (fixed TPM, one model snapshot), 30-day minimum, 15-minute usage windows, overflow to pay-as-you-go. [Guaranteed Capacity](https://openai.com/reserved-capacity/) adds 1–3 year committed-spend terms (May 2026).
+- [Anthropic Priority Tier](https://platform.claude.com/docs/en/api/service-tiers) — committed input+output TPM per model version, 1/3/6/12-month terms, auto-fallback to Standard on overflow.
+- [Vertex AI Provisioned Throughput](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput) — GSUs: 3-month ~11% and 1-year ~26% off the 1-month rate ([pricing](https://cloud.google.com/vertex-ai/generative-ai/pricing)). Non-cancelable, but GSUs can move to newer models mid-term.
+- [FinOps Foundation: GenAI capacity options](https://www.finops.org/wg/genai-capacity-options/) — cross-provider decision framework.
+
+Rules: break-even ≈ the discount ratio (26% off needs ~74%+ sustained utilization); commit to baseload, spill bursts to pay-as-you-go; use-it-or-lose-it is per minute/15-min window, not per month; check model lock — OpenAI and Anthropic bind to a model snapshot, Vertex doesn't. Cloud-contract angle: Azure OpenAI burns MACC; Bedrock-in-EDP is negotiated; GCP CUDs don't cover Gemini inference.
 
 Next: [Culture →](04-culture.md)

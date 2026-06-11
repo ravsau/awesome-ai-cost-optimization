@@ -290,11 +290,31 @@ Agents multiply costs because they loop. Efficient agent design is cost design. 
 
 ## Commitment Pricing
 
-A bet on your own forecast. Buy only after 30–60 days of real pay-as-you-go telemetry shows high, steady volume. These are capacity prices, not token prices — be precise about what's being discounted.
+Every major provider sells committed capacity or committed spend at a discount. Whether it pays off depends entirely on your traffic shape — explore it against 30–60 days of your own pay-as-you-go telemetry, not the sales deck. Be precise about what's discounted: usually a capacity rate, not token prices.
 
-- [Azure provisioned throughput (PTU)](https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/provisioned-throughput) - Three purchase modes: hourly (no commitment), monthly reservation, yearly reservation. Monthly discounts the hourly PTU rate; yearly saves roughly another ~35% vs monthly; up to ~70% total vs pay-as-you-go token pricing — only at high sustained utilization. Entry ~$2,400+/month.
-- [AWS Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) - Billed hourly per model unit; no-commitment, 1-month, and 6-month tiers. The 6-month commit typically runs 20–40% below the 1-month hourly rate.
-- [nOps Bedrock pricing guide](https://www.nops.io/blog/amazon-bedrock-pricing/) - Practitioner walkthrough: on-demand vs batch (50% off token rates) vs provisioned, with model-unit examples.
+**Per provider:**
+
+- [Azure OpenAI provisioned throughput (PTU)](https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/provisioned-throughput) - Three purchase modes: hourly (no commitment), monthly reservation, yearly reservation. Monthly discounts the hourly PTU rate; yearly saves roughly another ~35% vs monthly; up to ~70% total vs pay-as-you-go token pricing at high sustained utilization. Entry ~$2,400+/month.
+- [AWS Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) - Billed hourly per model unit; no-commitment, 1-month, and 6-month tiers. The 6-month commit typically runs 20–40% below the 1-month hourly rate. ([nOps walkthrough](https://www.nops.io/blog/amazon-bedrock-pricing/))
+- [OpenAI Scale Tier](https://openai.com/api-scale-tier/) - Buy "token units" (fixed input+output TPM for one model snapshot), 30-day minimum per unit, billed monthly. Usage averaged in 15-minute windows; overflow spills to pay-as-you-go. Flat-rate capacity, so it only beats per-token billing at high sustained utilization.
+- [OpenAI Guaranteed Capacity](https://openai.com/reserved-capacity/) - Committed-spend program (May 2026): 1-, 2-, or 3-year terms, discounts increase with term length, drawdown across OpenAI's portfolio. Terms reported via [CNBC](https://www.cnbc.com/2026/05/19/openai-announces-new-guaranteed-capacity-offering-for-customers-to-secure-compute.html); confirm specifics with sales.
+- [Anthropic Priority Tier](https://platform.claude.com/docs/en/api/service-tiers) - Commit to input TPM + output TPM for a specific model version, terms of 1/3/6/12 months, longer terms discounted (percentages via sales). Overflow falls back to Standard tier automatically with `service_tier: "auto"`.
+- [Vertex AI Provisioned Throughput](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/provisioned-throughput) - Buy GSUs (model-specific tokens/sec). Per the [pricing table](https://cloud.google.com/vertex-ai/generative-ai/pricing): 1-week $1,200/GSU, 1-month $2,700, 3-month $2,400/mo (~11% off the 1-month rate), 1-year $2,000/mo (~26% off). Non-cancelable, charged regardless of usage — but GSUs can be re-pointed to newer models mid-term, which the other providers don't allow.
+
+**Cloud-contract angle** (where AI spend meets your existing enterprise commit):
+
+- Azure OpenAI consumption counts toward [MACC](https://learn.microsoft.com/en-us/marketplace/azure-consumption-commitment-benefit) drawdown.
+- Bedrock can count toward an AWS EDP/PPA, but AI-service inclusion is negotiated, not automatic.
+- GCP CUDs do not cover Gemini token inference — Provisioned Throughput is the only commit vehicle there.
+- Buying model providers through cloud marketplaces (Claude via AWS Marketplace, etc.) can burn down existing commits; drawdown caps are contract-specific.
+- [FinOps Foundation: Navigating GenAI Capacity Options](https://www.finops.org/wg/genai-capacity-options/) - Cross-provider framework for exactly this decision.
+
+**Decision rules:**
+
+1. Break-even is the discount ratio: a 26% discount needs roughly ≥74% sustained utilization to beat the shorter term.
+2. Commit to your baseload (P50 traffic), let overflow spill to pay-as-you-go — all three capacity programs overflow gracefully.
+3. Use-it-or-lose-it is per minute or per 15-minute window, not per month — spiky traffic wastes committed capacity even when monthly totals look fine.
+4. Check model lock before signing: OpenAI Scale Tier and Anthropic Priority Tier bind to a model snapshot; a mid-term model release can strand you. Vertex GSUs can move.
 
 ---
 
