@@ -4,206 +4,362 @@ A curated list of tools, techniques, benchmarks, and resources for reducing AI i
 
 Most teams overspend on AI inference, underuse open source models, and run agentic workflows at a fraction of their potential. This repo is for engineers and leaders who want to fix that.
 
+The list is organized the way the work should actually be done: **measure first, take the easy money, then pull the big levers, then build the habits that keep the bill from growing back.** If you want the narrative version with the order of operations spelled out, start with the playbook.
+
+---
+
+## The Playbook
+
+A field guide in six parts — what to do, in what order, and when each move is worth it:
+
+1. [Start Here — how to think about AI cost](playbook/00-start-here.md)
+2. [Must-Dos — measure before you optimize](playbook/01-must-dos.md)
+3. [Low-Hanging Fruit — the first week](playbook/02-low-hanging-fruit.md)
+4. [Big Levers — structural changes worth real engineering](playbook/03-big-levers.md)
+5. [Culture — the habits that keep the bill down](playbook/04-culture.md)
+6. [The Audit Checklist — run it quarterly](playbook/05-audit-checklist.md)
+
 ---
 
 ## Contents
 
-- [Model Selection and Routing](#model-selection-and-routing)
+**Tier 0 — Must-Dos (measure first)**
+- [Monitoring, Observability, and Gateways](#monitoring-observability-and-gateways)
+- [Budgets and Guardrails](#budgets-and-guardrails)
 - [Evals and Model Comparison](#evals-and-model-comparison)
-- [Open Source Models](#open-source-models)
+- [FinOps and Unit Economics](#finops-and-unit-economics)
+
+**Tier 1 — Low-Hanging Fruit (the first week)**
 - [Inference Optimization](#inference-optimization)
-- [Prompt Compression](#prompt-compression)
+- [Dev and Test Hygiene](#dev-and-test-hygiene)
+
+**Tier 2 — Big Levers (weeks of work, 50–90% cuts)**
+- [Model Selection and Routing](#model-selection-and-routing)
+- [Open Source Models](#open-source-models)
 - [Self-Hosting and Serving Infrastructure](#self-hosting-and-serving-infrastructure)
+- [Fine-Tuning and Distillation](#fine-tuning-and-distillation)
+- [Prompt and Context Compression](#prompt-and-context-compression)
 - [Embeddings and Vector Storage](#embeddings-and-vector-storage)
 - [Agentic Workflow Efficiency](#agentic-workflow-efficiency)
-- [Monitoring, Observability, and Gateways](#monitoring-observability-and-gateways)
+- [Commitment Pricing](#commitment-pricing)
+
+**Tier 3 — Culture (what makes it stick)**
+- [Cost-Aware Engineering Culture](#cost-aware-engineering-culture)
+- [Case Studies](#case-studies)
+- [Anti-Patterns and Postmortems](#anti-patterns-and-postmortems)
+
+**Reference**
 - [Pricing Comparisons](#pricing-comparisons)
 - [Patterns and Snippets](#patterns-and-snippets)
-- [Case Studies](#case-studies)
+- [Suggested Reading](#suggested-reading)
 - [Articles, Papers, and Talks](#articles-papers-and-talks)
 - [Related Lists](#related-lists)
 - [Tools](#tools)
+- [Community Tools](#community-tools)
 
 ---
 
-## Model Selection and Routing
+# Tier 0 — Must-Dos
 
-Picking the right model for the right task is the single biggest cost lever. Stop using Opus for tasks Haiku can handle.
+None of this saves money directly. All of it is what makes saving money possible — and safe. If API keys are scattered across laptops and services, you have no spend data to optimize.
 
-- [Anthropic Model Comparison](https://docs.anthropic.com/en/docs/about-claude/models) - Claude model tiers, pricing, and capability tradeoffs
-- [OpenAI Pricing](https://openai.com/api/pricing/) - GPT model pricing per token
-- [Google AI Pricing](https://ai.google.dev/pricing) - Gemini model pricing
-- [Artificial Analysis](https://artificialanalysis.ai/) - Independent LLM benchmarks with price/performance rankings
-- [OpenRouter](https://openrouter.ai/) - Unified API with price comparison across 100+ models
-- [Martian Model Router](https://github.com/withmartian/routerbench) - Benchmark for LLM routing systems
-- [RouteLLM](https://github.com/lm-sys/RouteLLM) - Framework for serving and evaluating LLM routers (from LMSYS). Cuts GPT-4 calls to 14% of traffic while keeping 95% of quality.
-- [FrugalGPT (reference impl)](https://github.com/stanford-futuredata/FrugalGPT) - The canonical LLM cascade paper + code. Matches GPT-4 at up to 98% lower cost.
-- [OptiLLM](https://github.com/codelion/optillm) - OpenAI-compatible proxy with 20+ inference-time techniques (MoA, CoT decoding, MCTS) that let you downshift to a cheaper model.
-- [Cascade Routing (ETH)](https://github.com/eth-sri/cascade-routing) - Unified routing + cascading; beats either alone on the cost/quality frontier.
-- [Not-Diamond awesome-routing](https://github.com/Not-Diamond/awesome-ai-model-routing) - Curated index of routing research.
+## Monitoring, Observability, and Gateways
 
-**Key insight:** Route 80% of requests to small/cheap models. Reserve frontier models for tasks that actually need them. Most classification, extraction, and summarization tasks don't need GPT-4 or Opus.
+You can't optimize what you don't measure. A gateway gives every request a paper trail: who called, which model, how many tokens, what it cost.
+
+**Gateways:**
+
+- [LiteLLM](https://github.com/BerriAI/litellm) - The default self-hosted pick. 100+ providers, per-key/team budgets in Postgres. Strains around ~2K req/s; fine for almost everyone.
+- [Portkey Gateway](https://github.com/Portkey-AI/gateway) - Fully open source (Apache 2.0) since March 2026 — governance, cost controls, and MCP gateway included.
+- [Bifrost](https://github.com/maximhq/bifrost) - Go gateway by Maxim AI; under 100µs overhead at 5K req/s. The pick when Python proxies become the bottleneck.
+- [Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/) - 350+ models, edge cache, generous free tier. Managed only.
+- [Kong AI Gateway](https://github.com/Kong/kong) - AI plugins on Kong's OSS gateway; rate-limit, cost-budget, semantic cache.
+- [Vercel AI Gateway](https://vercel.com/ai-gateway) - Sub-20ms routing across 100+ models.
+
+**Observability:**
+
+- [Langfuse](https://github.com/langfuse/langfuse) - Most-adopted open source LLM observability; automatic cost calculation per generation. Acquired by ClickHouse, Jan 2026.
+- [Helicone](https://github.com/Helicone/helicone) - Open source observability plus a Rust gateway; one-line integration.
+- [tokencost](https://github.com/AgentOps-AI/tokencost) - $ estimates for 400+ LLMs *before* you call.
+- [ccusage](https://github.com/ryoppippi/ccusage) - CLI for local coding-agent spend (Claude Code, Codex, Gemini CLI, +more). The de facto individual-dev standard.
+- [Claude Code monitoring](https://code.claude.com/docs/en/monitoring-usage) - Native OpenTelemetry export: tokens, cost, cache efficiency by user/model/subagent.
+- [claude-code-otel](https://github.com/ColeMurray/claude-code-otel) - Ready-made OTel + Prometheus + Grafana stack for team-level agent spend.
+
+**Key insight:** Route everything through one gateway on day one — not for fallbacks or caching, for the receipts. An afternoon of work.
+
+## Budgets and Guardrails
+
+A budget without enforcement is a hope. Every key gets a dollar cap and a model allow-list before it ships. Every published runaway-bill postmortem had monitoring; none had a gate.
+
+- [LiteLLM budgets and rate limits](https://docs.litellm.ai/docs/proxy/users) - Per-key/user/team caps with daily/weekly/monthly resets; hard caps return 429, soft caps alert.
+- [Cloudflare AI Gateway spend limits](https://blog.cloudflare.com/ai-gateway-spend-limits/) - Shipped June 2026: dollar budgets per model/provider/custom attribute, with optional downgrade-to-cheaper-model instead of blocking.
+- [LiteLLM agent iteration budgets](https://docs.litellm.ai/docs/a2a_iteration_budgets) - Caps agent loop iterations; the closest thing to a native runaway-agent kill switch.
+- [Traceloop: from bills to budgets](https://www.traceloop.com/blog/from-bills-to-budgets-how-to-track-llm-token-usage-and-cost-per-user) - Tag every call with user/feature/team so budgets are per-dimension, not per-invoice.
+
+**Key insight:** Don't ask agents to manage their own budgets. Ramp tried; [the agents ignored them](https://x.com/RampLabs/status/2046642262042657176). Enforcement belongs in the gateway, never in the prompt.
 
 ## Evals and Model Comparison
 
-Before you can route to a cheaper model, you need to prove it's good enough on your actual tasks. Eval tools let you A/B prompts and models against a fixed dataset and compare cost, latency, and quality side-by-side.
+Before you can route to a cheaper model, you need to prove it's good enough on your actual tasks. Without a baseline, "switch to the cheaper model" is a quality gamble, not a decision.
 
-- [promptfoo](https://github.com/promptfoo/promptfoo) - Open source CLI to test prompts, models, and RAG against your own dataset. Side-by-side cost + quality matrix.
-- [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) - UK AISI's eval framework. Solid for agentic and tool-use evals.
-- [OpenAI Evals](https://github.com/openai/evals) - Open framework for evaluating LLMs and LLM systems
-- [DeepEval](https://github.com/confident-ai/deepeval) - Pytest-style LLM eval framework with cost/latency tracking
-- [Braintrust](https://www.braintrust.dev/) - Hosted eval platform with per-run cost tracking and model comparison
-- [LangFuse Evals](https://langfuse.com/docs/scores/overview) - Open source eval scoring tied to traces and cost
-- [Helicone Experiments](https://www.helicone.ai/) - Run prompt experiments against production traffic with cost deltas
-- [Ragas](https://github.com/explodinggradients/ragas) - Eval framework specifically for RAG pipelines
-- [ai-evaluation](https://github.com/future-agi/ai-evaluation) - Open-source LLM evaluation framework with 50+ metrics, LLM-as-Judge, and guardrail scanners (jailbreak, PII, injection). Use to qualify cheaper models against your workload.
+- [promptfoo](https://github.com/promptfoo/promptfoo) - Open source CLI to test prompts, models, and RAG against your own dataset. ~15 minutes to wire into CI. Used by OpenAI and Anthropic.
+- [Inspect](https://github.com/UKGovernmentBEIS/inspect_ai) - UK AI Security Institute's framework; 200+ pre-built evals, strong for agentic and tool-use evals.
+- [DeepEval](https://github.com/confident-ai/deepeval) - Pytest-style eval framework, 50+ metrics, built for CI gating.
+- [Braintrust](https://www.braintrust.dev/) - Hosted eval platform; the "block on regression, not absolute threshold" workflow with baseline history.
+- [Langfuse Evals](https://langfuse.com/docs/scores/overview) - Open source eval scoring tied to traces and cost.
+- [Ragas](https://github.com/explodinggradients/ragas) - Eval framework specifically for RAG pipelines.
+- [OpenAI Evals](https://github.com/openai/evals) - Open framework for evaluating LLMs and LLM systems.
 
-**Key insight:** "Cheaper model" is a guess until you eval it. Build a 50-100 example dataset of your real workload, run promptfoo against 4-5 candidate models, and pick the cheapest one that clears your quality bar. Most teams skip this step and overpay forever.
+**Key insight:** The downshift workflow: pull 50–100 real examples from production traces → score the current model as baseline → run the cheaper candidate against the same set → ship only if nothing critical regresses. Most teams skip this step and overpay forever.
 
-## Open Source Models
+## FinOps and Unit Economics
 
-Open source can handle 80% of what proprietary APIs do, at a fraction of the cost.
+The metric that matters is cost per completed task — per resolved ticket, per merged PR — not cost per API call. Agent loops make request counts meaningless.
 
-- [Ollama](https://ollama.com/) - Run open source models locally with one command
-- [Qwen 3.5](https://huggingface.co/Qwen) - "Towards Native Multimodal Agents." Outperforms GPT-5 mini on function calling by 30%. Small versions (0.8B-9B) run on laptops. The before-and-after moment for local AI agents.
-- [Llama 4](https://llama.meta.com/) - Meta's open source model family
-- [Mistral](https://mistral.ai/) - European open source models, strong multilingual
-- [DeepSeek](https://github.com/deepseek-ai) - Cost-efficient open source models from China. DeepSeek-V3 was trained for ~$5.6M total — the upper bound on what "frontier" actually has to cost.
-- [LMSYS Chatbot Arena](https://chat.lmsys.org/) - Crowdsourced LLM rankings (find where open source matches proprietary)
+- [FinOps for AI (FinOps Foundation)](https://www.finops.org/wg/finops-for-ai-overview/) - The official framework; AI is now a formal FinOps technology category. Cost-per-token as a first-class KPI; showback before chargeback.
+- [CloudZero: FinOps for AI](https://www.cloudzero.com/blog/finops-for-ai/) - Why traditional tagging breaks for LLMs and how to capture allocation at the gateway layer instead.
+- [Finout: FinOps for AI agents](https://www.finout.io/blog/finops-for-ai-agents-a-four-step-allocation-framework) - Four-step allocation framework for agentic workloads.
+- [OpenMeter](https://github.com/openmeterio/openmeter) - Open source usage metering with first-class token metering; the per-customer margin layer once AI cost is your COGS.
+- [Orb](https://www.withorb.com/) - Usage-based billing engine; metrics defined in SQL.
+- [TrueFoundry: team budgets and chargeback](https://www.truefoundry.com/blog/llm-cost-attribution-team-budgets) - Chargeback reporting down to team / agent / model.
 
-**Key insight:** Run Ollama locally for development, testing, and low-stakes tasks. Use APIs only for production workloads that need frontier capability. Hybrid architecture = massive cost reduction.
+**Key insight:** Two extra metadata fields on every request — who, and which feature — is the difference between "we spent $40K on AI" and "the support summarizer costs $0.11 per ticket." You cannot retrofit attribution. (Signal worth knowing: Stripe bought Metronome, the metering layer behind OpenAI's and Anthropic's billing, for ~$1B in January 2026.)
+
+---
+
+# Tier 1 — Low-Hanging Fruit
+
+Everything here ships in under a week, carries near-zero risk, and routinely cuts a bill 30–70%.
 
 ## Inference Optimization
 
 Reduce cost per token without changing models.
 
-- [Prompt Caching (Anthropic)](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) - Cache system prompts to reduce repeat token costs by 90%
-- [Batch API (Anthropic)](https://docs.anthropic.com/en/docs/build-with-claude/batch-processing) - 50% discount for async batch processing
-- [Batch API (OpenAI)](https://platform.openai.com/docs/guides/batch) - 50% discount for batch requests
-- [Distillation](https://platform.openai.com/docs/guides/distillation) - Train smaller models on larger model outputs
-- [Semantic Caching](https://github.com/gptcache/gptcache) - Cache similar queries to avoid redundant API calls
-- [LiteLLM](https://github.com/BerriAI/litellm) - Unified proxy for 100+ LLMs with spend tracking and rate limiting
-- [Medusa](https://github.com/FasterDecoding/Medusa) - Speculative decoding with multiple heads; ~2x throughput without a separate draft model.
-- [EAGLE](https://github.com/SafeAILab/EAGLE) - Feature-aware speculative sampling; 3x faster than vanilla, 1.6x faster than Medusa.
-- [LookaheadDecoding](https://github.com/hao-ai-lab/LookaheadDecoding) - Jacobi-style parallel decoding; 1.5–2.3x speedup, no draft model required.
+**Caching:**
 
-**Key insight:** Prompt caching alone can cut costs 50-90% for applications with repeated system prompts. If you're not using it, you're leaving money on the table.
+- [Prompt Caching (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) - Cache reads bill at 0.1× the input price. Mind the write surcharge: 1.25× input for the 5-minute TTL, 2× for the 1-hour TTL — an unread cache costs more than no cache.
+- [Prompt Caching (OpenAI)](https://developers.openai.com/api/docs/guides/prompt-caching) - Automatic on prompts ≥1,024 tokens; cached input bills at 10% of the input price, no write surcharge.
+- [Context Caching (Gemini)](https://ai.google.dev/gemini-api/docs/caching) - Implicit caching on by default for 2.5+ models; cached tokens ~10% of input; explicit caching adds $1.00/M tokens/hour storage.
+- [Semantic Caching (GPTCache)](https://github.com/zilliztech/GPTCache) - Cache similar queries to avoid redundant API calls entirely.
 
-## Prompt Compression
+**Batch and processing tiers:**
 
-The cheapest token is the one you never send. These tools shrink prompts before they hit the API, with measurable quality preservation.
+- [Message Batches (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/batch-processing) - 50% off all token usage; most batches finish under an hour. Stacks with prompt caching.
+- [Batch API (OpenAI)](https://developers.openai.com/api/docs/guides/batch) - Flat 50% off every model, 24-hour window. Stacked with caching: ~75% off repeated prompts.
+- [Flex Processing (OpenAI)](https://developers.openai.com/api/docs/guides/flex-processing) - Batch-level pricing on synchronous calls; slower, may return "resource unavailable." Beta.
+- [Gemini batch mode](https://ai.google.dev/gemini-api/docs/pricing) - 50% off all paid models.
+- [Priority Processing (OpenAI)](https://openai.com/api-priority-processing/) - The inverse: ~2–2.5× the standard rate for lower latency. Know it exists so you don't pay it by accident.
 
-- [LLMLingua](https://github.com/microsoft/LLMLingua) - Microsoft Research. Compresses prompts up to 20x with minimal accuracy loss.
-- [LLMLingua-2](https://github.com/microsoft/LLMLingua) - Task-agnostic BERT-class compressor; 3–6x faster compression than LLMLingua-1.
-- [Selective-Context](https://github.com/liyucheng09/Selective_Context) - Drops low self-information tokens to cut input length 50%+ on RAG contexts.
-- [500xCompressor](https://github.com/ZongqianLi/500xCompressor) - Compresses up to 500 natural-language tokens into 1 soft token; retains 62–73% of capability. ACL 2025.
-- [PCToolkit](https://github.com/3DAgentWorld/Toolkit-for-Prompt-Compression) - Unified benchmarking toolkit comparing LLMLingua, SCRL, KiS, Selective Context, RECOMP side-by-side.
+**Trimming waste:**
 
-**Key insight:** Long contexts in agent loops compound. A 20x compression on a 32k-token context saves more per call than any caching trick. Pair compression with caching for the largest wins.
+- [Tool use overhead (Anthropic)](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) - Tool definitions bill as input tokens on every request, plus a 290–675 token hidden system prompt. Unused tools are a recurring tax — delete them.
+- [Structured Outputs (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) / [(OpenAI)](https://developers.openai.com/api/docs/guides/structured-outputs) - Schema-enforced output kills the retry-on-bad-parse loop; every retry is a full-price request.
+- [Token counting (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/token-counting) - Free endpoint. Know what your system prompt costs before sending it a million times.
+
+**Key insight:** Caching is prefix-matched — one timestamp at the top of your system prompt means zero cache hits forever. Stable content first, variable content last, then check `cache_read_input_tokens` is actually non-zero.
+
+## Dev and Test Hygiene
+
+The biggest surprise bills come from development, not production. A retry loop in CI hitting a flagship model all weekend beats any prod workload.
+
+- [vcrpy](https://github.com/kevin1024/vcrpy) - Record real API interactions once, replay in every CI run; test cost drops to ~$0.
+- [llmock](https://github.com/CopilotKit/llmock) - Deterministic mock LLM server with streaming and record/replay.
+- [mockllm](https://github.com/StacklokLabs/mockllm) - YAML-configured mock server mimicking OpenAI/Anthropic wire formats.
+- [Ollama](https://ollama.com/) - Run open models locally for dev loops and CI smoke tests. $0/M tokens.
+- [LiteLLM per-key budgets](https://docs.litellm.ai/docs/proxy/users) - A `max_budget` on every dev key caps the blast radius of any runaway script.
+
+---
+
+# Tier 2 — Big Levers
+
+Weeks of work, 50–90% cuts, real failure modes. Each lever has a "when it's worth it" line — the [playbook page](playbook/03-big-levers.md) spells them out.
+
+## Model Selection and Routing
+
+Picking the right model for the right task is the single biggest cost lever. The price gap between flagship and cheap tiers is now 25–50×. Stop using Opus for tasks Haiku can handle.
+
+- [RouteLLM](https://github.com/lm-sys/RouteLLM) - The canonical OSS router (LMSYS). Published result: 85% cost reduction at 95% of GPT-4 quality on MT-Bench.
+- [LLMRouter](https://github.com/ulab-uiuc/LLMRouter) - UIUC's routing library (Dec 2025): 16+ routing methods — single-round, multi-round, agentic, personalized.
+- [RouterArena](https://arxiv.org/abs/2510.00202) - Live leaderboard comparing academic and commercial routers head-to-head. Check before picking one.
+- [OpenRouter Auto Router](https://openrouter.ai/docs/guides/routing/routers/auto-router) - `openrouter/auto` routes across 19 models; routing is free, you pay the selected model's normal rate.
+- [FrugalGPT (reference impl)](https://github.com/stanford-futuredata/FrugalGPT) - The foundational LLM-cascade paper + code. Required reading before building any router.
+- [OptiLLM](https://github.com/codelion/optillm) - OpenAI-compatible proxy with 20+ inference-time techniques that let you downshift to a cheaper model.
+- [Cascade Routing (ETH)](https://github.com/eth-sri/cascade-routing) - Unified routing + cascading; beats either alone on the cost/quality frontier.
+- [Artificial Analysis](https://artificialanalysis.ai/) - Independent benchmarks with price/performance rankings.
+
+**Key insight:** Route the easy 80% to small/cheap models and reserve frontier models for tasks that need them — but downshift by task, not by app, and gate every downgrade with an eval.
+
+## Open Source Models
+
+Open source can handle 80% of what proprietary APIs do, at a fraction of the cost.
+
+- [Ollama](https://ollama.com/) - Run open source models locally with one command.
+- [Qwen](https://huggingface.co/Qwen) - Strong open-weight family; small versions run on laptops. The default local-agent pick.
+- [Llama](https://llama.meta.com/) - Meta's open source model family.
+- [Mistral](https://mistral.ai/) - European open source models, strong multilingual.
+- [DeepSeek](https://github.com/deepseek-ai) - Cost-efficient open models; DeepSeek-V3 was trained for ~$5.6M total — the upper bound on what "frontier" actually has to cost.
+- [LMSYS Chatbot Arena](https://chat.lmsys.org/) - Crowdsourced rankings; find where open source matches proprietary.
+
+**Key insight:** Run open models locally for development, testing, and low-stakes tasks. Use APIs for production workloads that need frontier capability. Hybrid architecture = massive cost reduction.
 
 ## Self-Hosting and Serving Infrastructure
 
-When API costs cross ~$5K/month for steady traffic, self-hosting often beats them. These tools change the economics.
+Self-hosting is a payroll decision, not a GPU decision. The GPU math works at ~5–10M tokens/day, but the 10–20% of an engineer it permanently eats (~$4–6K/month) means you really want 10M+ steady tokens/day before it beats a cheap API. Spiky traffic kills it — idle GPUs bill the same as busy ones.
 
 **Inference engines:**
 
-- [vLLM](https://github.com/vllm-project/vllm) - High-throughput LLM serving with PagedAttention. Industry standard for OSS serving.
-- [SGLang](https://github.com/sgl-project/sglang) - RadixAttention prefix cache + FP4/FP8/INT4 quantization; powers ~400k GPUs in production.
-- [TGI (Text Generation Inference)](https://github.com/huggingface/text-generation-inference) - HF's production server with continuous batching + AWQ/GPTQ/EETQ/fp8.
-- [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM) - NVIDIA's optimized kernels; 2–4x throughput vs vanilla on H100/H200 = direct $/token reduction.
-- [llama.cpp](https://github.com/ggerganov/llama.cpp) - Pure C/C++ inference; the reference CPU/Metal/edge runtime.
-- [llamafile](https://github.com/Mozilla-Ocho/llamafile) - Single-file LLM executable; deployment cost-of-ops near zero.
+- [vLLM](https://github.com/vllm-project/vllm) - The default: V1 engine, deepest ecosystem and Kubernetes maturity.
+- [SGLang](https://github.com/sgl-project/sglang) - Wins prefix-heavy and structured-output workloads (~29% higher throughput on H100, ~3× faster constrained JSON decoding).
+- [NVIDIA Dynamo](https://github.com/ai-dynamo/dynamo) - Datacenter-scale disaggregated serving (separate prefill/decode GPU pools). GA March 2026.
+- [LMCache](https://github.com/LMCache/LMCache) - Persists and shares KV caches across requests on top of vLLM/Dynamo.
+- [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM) - NVIDIA's optimized kernels; 2–4× throughput vs vanilla on H100/H200.
+- [TGI (Text Generation Inference)](https://github.com/huggingface/text-generation-inference) - HF's production server with continuous batching.
+- [llama.cpp](https://github.com/ggerganov/llama.cpp) - The reference CPU/Metal/edge runtime.
+- [llamafile](https://github.com/Mozilla-Ocho/llamafile) - Single-file LLM executable; cost-of-ops near zero.
 - [LocalAI](https://github.com/mudler/LocalAI) - Drop-in OpenAI-compatible API for local inference.
 
 **Quantization:**
 
 - [AutoAWQ](https://github.com/casper-hansen/AutoAWQ) - 4-bit weight quantization; cuts VRAM ~70%, runs 70B on a single A100.
-- [ExLlamaV2](https://github.com/turboderp-org/exllamav2) - Fastest 4-bit consumer-GPU inference; 70B on 2x 3090s.
-- [Unsloth](https://github.com/unslothai/unsloth) - 2x faster fine-tuning at 50% less VRAM; Dynamic v2.0 GGUFs preserve accuracy at 4-bit.
+- [ExLlamaV2](https://github.com/turboderp-org/exllamav2) - Fastest 4-bit consumer-GPU inference; 70B on 2× 3090s.
 
 **Edge / browser:**
 
-- [MLC LLM](https://github.com/mlc-ai/mlc-llm) - Compiles models to phones, browsers, edge. Eliminates server $ entirely for many use cases.
-- [WebLLM](https://github.com/mlc-ai/web-llm) - In-browser inference via WebGPU; ~85% native Metal performance, $0 inference cost per user.
+- [MLC LLM](https://github.com/mlc-ai/mlc-llm) - Compiles models to phones, browsers, edge.
+- [WebLLM](https://github.com/mlc-ai/web-llm) - In-browser inference via WebGPU; $0 inference cost per user.
 
-**Orchestration:**
+**Orchestration and pricing:**
 
 - [SkyPilot](https://github.com/skypilot-org/skypilot) - Auto-routes workloads to the cheapest available cloud/region/spot across 20+ providers.
 - [dstack](https://github.com/dstackai/dstack) - Open GPU orchestrator across clouds + on-prem; spot/preemptible scheduling.
-- [Truss (BaseTen)](https://github.com/basetenlabs/truss) - Containerization standard for model serving; sub-second cold starts via cached layers.
+- [GetDeploying GPU price tracker](https://getdeploying.com/gpus/nvidia-h200) - Live H100/H200 prices across 32+ providers. (June 2026: H200 on-demand median ~$4.11/hr, spot floor ~$1/hr.)
+- [RunPod](https://www.runpod.io/pricing) / [Vast.ai](https://vast.ai/pricing) - H100 from ~$1.49–2.69/hr depending on tier and reliability tolerance.
 - [BentoML / OpenLLM](https://github.com/bentoml/OpenLLM) - One-command OpenAI-compatible serving of any open model on any cloud.
 
-**Key insight:** A 70B model that costs ~$15 per million output tokens via API runs at ~$0.50 per million on an idle H100 at spot price. The break-even is steady utilization. SkyPilot + spot instances + AWQ quantization shifts the curve hard.
+**Key insight:** Rough break-even at June 2026 prices: vs Sonnet-class API pricing ($3 in / $15 out per million), self-hosting a quantized 70B wins clearly by ~10M tokens/day. Vs Haiku-class pricing, break-even pushes to ~15–25M tokens/day. Under ~5M tokens/day, don't self-host for cost reasons — privacy and latency are separate arguments.
+
+## Fine-Tuning and Distillation
+
+When one narrow task runs millions of times a day, train a small open model on the frontier model's outputs and serve it for cents. Skip it when the task keeps changing — a distilled model is frozen the day you train it.
+
+- [Unsloth](https://github.com/unslothai/unsloth) - Fastest single-GPU fine-tuning: 2–5× faster, up to 80% less VRAM.
+- [torchtune](https://github.com/pytorch/torchtune) - PyTorch-native recipes including knowledge distillation and quantization-aware training.
+- [Axolotl](https://github.com/axolotl-ai-cloud/axolotl) - Config-driven multi-GPU training for teams past the single-GPU stage.
+- [Is Fine-Tuning Still Valuable? (Hamel Husain)](https://hamel.dev/blog/posts/fine_tuning_valuable.html) - Fine-tune only after evals + prompting hit a wall; otherwise you're spending training $ on a routing problem.
+- [OpenAI deprecations](https://developers.openai.com/api/docs/deprecations) - OpenAI is winding down self-serve fine-tuning (new orgs blocked May 2026, all access ends Jan 2027). Open weights are the durable distillation path.
+
+## Prompt and Context Compression
+
+The cheapest token is the one you never send. Long contexts in agent loops compound — a context cut saves more per call than any caching trick, and they stack.
+
+- [LLMLingua / LLMLingua-2](https://github.com/microsoft/LLMLingua) - Microsoft Research. Up to 20× compression with minimal accuracy loss; v2 is 3–6× faster. Stable but quiet since 2024.
+- [Anthropic context editing + memory](https://claude.com/blog/context-management) - Platform-native context management; context editing cut token use 84% in a 100-turn agent test.
+- [ACON](https://arxiv.org/abs/2510.00615) - Context compression built for long-horizon agents; 26–54% peak-token reduction with task performance held.
+- [Selective-Context](https://github.com/liyucheng09/Selective_Context) - Drops low self-information tokens; 50%+ cuts on RAG contexts.
+- [500xCompressor](https://github.com/ZongqianLi/500xCompressor) - Compresses up to 500 NL tokens into 1 soft token; retains 62–73% of capability. ACL 2025.
+- [PCToolkit](https://github.com/3DAgentWorld/Toolkit-for-Prompt-Compression) - Benchmarking toolkit comparing the major compressors side-by-side.
 
 ## Embeddings and Vector Storage
 
-Embedding and vector infra are some of the most overpaid line items in AI infrastructure.
+The most overpaid line item in RAG. Most teams don't need a hosted vector database.
 
 **Vector storage:**
 
-- [Amazon S3 Vectors](https://aws.amazon.com/s3/features/vectors/) - $0.06/GB vs Pinecone $0.33/GB vs Weaviate ~$25/GB. Up to 400x cheaper.
-- [pgvector](https://github.com/pgvector/pgvector) - Open source vector extension for PostgreSQL (use your existing DB).
-- [Chroma](https://github.com/chroma-core/chroma) - Open source embedding database.
-- [SQLite-VSS](https://github.com/asg017/sqlite-vss) - SQLite extension for vector search (zero-cost for small datasets).
+- [Amazon S3 Vectors](https://aws.amazon.com/s3/features/vectors/) - $0.06/GB/month storage vs Pinecone $0.33/GB (plus Pinecone Standard's $50/month minimum). Caveat: query cost scales with index size scanned, so at very high query volume on large indexes the gap narrows.
+- [pgvector](https://github.com/pgvector/pgvector) - Open source vector extension for PostgreSQL — use the database you already run. Handles millions of vectors.
+- [turbopuffer](https://turbopuffer.com/) - Object-storage-backed vector DB; powers Notion's 10× scale at 1/10th cost.
 - [Qdrant](https://github.com/qdrant/qdrant) - Open source vector DB with on-premise option.
-- [turbopuffer](https://turbopuffer.com/) - Object-storage-backed vector DB; powers Notion's 10x scale at 1/10th cost.
+- [Chroma](https://github.com/chroma-core/chroma) - Open source embedding database.
+- [SQLite-VSS](https://github.com/asg017/sqlite-vss) - SQLite vector search; zero-cost for small datasets.
 
 **Embedding cost reduction:**
 
-- [Model2Vec](https://github.com/MinishLab/model2vec) - Static distilled embeddings ~50x smaller (~8–30MB) and ~500x faster than sentence-transformers on CPU.
+- [Model2Vec](https://github.com/MinishLab/model2vec) - Static distilled embeddings ~50× smaller and ~500× faster than sentence-transformers on CPU.
 - [FastEmbed](https://github.com/qdrant/fastembed) - Quantized ONNX embedding models; no PyTorch dependency, runs on CPU.
-- [fastembed-rs](https://github.com/Anush008/fastembed-rs) - Rust port; even lower memory/cost for edge serving.
-- [sentence-transformers quantization](https://github.com/UKPLab/sentence-transformers) - Built-in INT8/binary quantization; ~32x less memory at ~96% recall, 3x speedup.
-- [Matryoshka embeddings (truncation)](https://huggingface.co/blog/matryoshka) - Truncate `text-embedding-3-*` to 256 dims; ~6x storage savings at marginal recall loss.
-
-**Key insight:** Most teams don't need a hosted vector database. pgvector on your existing PostgreSQL handles millions of vectors. S3 Vectors handles billions at commodity storage prices. Stop paying Pinecone $70/mo for 10K vectors.
+- [sentence-transformers quantization](https://github.com/UKPLab/sentence-transformers) - INT8/binary quantization; ~32× less memory at ~96% recall.
+- [Matryoshka embeddings](https://huggingface.co/blog/matryoshka) - Truncate to 256 dims; ~6× storage savings at marginal recall loss.
 
 ## Agentic Workflow Efficiency
 
-Agents multiply costs because they loop. Efficient agent design is cost design.
+Agents multiply costs because they loop. Efficient agent design is cost design. Measure cost per successful task completion, not cost per API call.
 
-- [agenttrace](https://github.com/luoyuctl/agenttrace) - Tracks AI coding-agent token, cost, latency, and failure regressions from local trace logs
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) - Agentic coding with cost tracking built in
-- [LangSmith](https://smith.langchain.com/) - Trace and monitor agent costs per run
-- [Braintrust](https://www.braintrust.dev/) - Eval and monitoring for LLM apps with cost tracking
-- [AgentOps](https://github.com/AgentOps-AI/agentops) - Observability for AI agents (tracks cost per agent run)
+- [agenttrace](https://github.com/luoyuctl/agenttrace) - Tracks coding-agent token, cost, latency, and failure regressions from local trace logs.
+- [ccusage](https://github.com/ryoppippi/ccusage) - Local spend reports for Claude Code, Codex, Gemini CLI, and more.
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) - Agentic coding with cost tracking and native OpenTelemetry export.
+- [LangSmith](https://smith.langchain.com/) - Trace and monitor agent costs per run.
+- [AgentOps](https://github.com/AgentOps-AI/agentops) - Observability for AI agents; cost per agent run.
+- [LiteLLM agent iteration budgets](https://docs.litellm.ai/docs/a2a_iteration_budgets) - Step caps for agent loops.
 
-**Key insight:** An unoptimized agent can burn $5-50 per run. Set token budgets, use smaller models for tool selection, and cache intermediate results. Measure cost per successful task completion, not cost per API call.
+**Key insight:** An unoptimized agent can burn $5–50 per run. Set token budgets at the platform layer, use smaller models for tool selection, cap iterations, and add a loop detector — a hash of the last tool call catches an infinite loop on iteration two.
 
-## Monitoring, Observability, and Gateways
+## Commitment Pricing
 
-You can't optimize what you don't measure. Gateways add a control plane in front of every model call.
+A bet on your own forecast. Buy only after 30–60 days of real pay-as-you-go telemetry shows high, steady volume. These are capacity prices, not token prices — be precise about what's being discounted.
 
-**Observability:**
+- [Azure provisioned throughput (PTU)](https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/provisioned-throughput) - Three purchase modes: hourly (no commitment), monthly reservation, yearly reservation. Monthly discounts the hourly PTU rate; yearly saves roughly another ~35% vs monthly; up to ~70% total vs pay-as-you-go token pricing — only at high sustained utilization. Entry ~$2,400+/month.
+- [AWS Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) - Billed hourly per model unit; no-commitment, 1-month, and 6-month tiers. The 6-month commit typically runs 20–40% below the 1-month hourly rate.
+- [nOps Bedrock pricing guide](https://www.nops.io/blog/amazon-bedrock-pricing/) - Practitioner walkthrough: on-demand vs batch (50% off token rates) vs provisioned, with model-unit examples.
 
-- [LiteLLM](https://github.com/BerriAI/litellm) - Proxy with per-key spend tracking, budgets, and rate limits
-- [Helicone](https://helicone.ai/) - LLM observability with cost dashboards
-- [Portkey](https://portkey.ai/) - AI gateway with cost tracking, caching, fallbacks
-- [LangFuse](https://github.com/langfuse/langfuse) - Open source LLM observability and cost analytics
-- [OpenMeter](https://openmeter.io/) - Usage metering for AI (track cost per customer/feature)
-- [tokencost](https://github.com/AgentOps-AI/tokencost) - $ estimates for 400+ LLMs *before* you call. AgentOps.
-- [traceAI](https://github.com/future-agi/traceAI) - Open-source OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span for downstream attribution.
+**Key insight:** A committed unit running at 40% utilization is a price increase wearing a discount costume.
 
-**Gateways:**
+---
 
-- [Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/) - 350+ models, edge cache cuts repeat-query cost toward $0. Generous free tier.
-- [Kong AI Gateway](https://github.com/Kong/kong) - AI plugins on Kong's OSS gateway; rate-limit, cost-budget, semantic cache.
-- [Vercel AI Gateway](https://vercel.com/ai-gateway) - Sub-20ms routing across 100+ models.
-- [Bifrost](https://github.com/maximhq/bifrost) - Newer OSS gateway by Maxim AI; 12+ providers, streaming-aware semantic cache.
-- [FerryAPI](https://www.ferryapi.io/) - OpenAI-compatible gateway with prepaid billing, customer API keys, and usage records.
+# Tier 3 — Culture
+
+Every technical fix decays. Prompts grow back; new features ship on the flagship model "just to be safe." Only habits compound.
+
+## Cost-Aware Engineering Culture
+
+The bill goes to whoever can change it. If AI spend rolls up only to finance, nothing improves — finance can't rewrite a prompt.
+
+- [FinOps for AI (FinOps Foundation)](https://www.finops.org/wg/finops-for-ai-overview/) - 78% of FinOps practices now report into the CTO/CIO org, up 18 points since 2023. The bill is moving from finance to engineering.
+- [Ramp: The Trillion-Dollar AI Blindspot](https://ramp.com/blog/trillion-dollar-ai-blindspot) - Customer data: average monthly AI token spend up 13× since January 2025.
+- [Ramp Builders: a unified pipeline for AI token spend](https://builders.ramp.com/post/ai-token-spend-management) - How Ramp's engineers built spend attribution.
+- [Inside Ramp: the AI adoption playbook (Geoff Charles)](https://creatoreconomy.so/p/inside-ramp-the-32b-company-ai-agents-geoff-charles) - Define levels, measure publicly, remove constraints — with cost governance built into the rollout.
+- [The Pragmatic Engineer: AI's impact on engineers in 2026](https://newsletter.pragmaticengineer.com/p/the-impact-of-ai-on-software-engineers-2026) - What companies actually pay: max-tier coding-agent plans at $100–200/engineer/month; budget orgs on $20 Copilot tiers.
+- [Uber caps coding-agent spend](https://www.washingtontimes.com/news/2026/jun/3/uber-capping-internal-use-ai-coding-software-blowing-budget/) - Annual AI coding budget gone in 4 months → $1,500/month cap per tool per engineer. Caps as a visibility tool: generous, visible, enforced.
+
+**Key insight:** Put cost per feature on the same dashboard as latency and error rate and engineers fix it on their own. The rituals: a monthly 30-minute cost review, a named owner per spend line, a postmortem for every cost anomaly — same as an outage.
+
+## Case Studies
+
+Real-world examples with concrete numbers.
+
+- [Two Years of Vector Search at Notion](https://www.notion.com/blog/two-years-of-vector-search-at-notion) - Migrated to turbopuffer + serverless + data-volume cuts: 10× scale at 1/10th the cost.
+- [How ProjectDiscovery Cut LLM Costs by 59% With Prompt Caching](https://projectdiscovery.io/blog/how-we-cut-llm-cost-with-prompt-caching) - Cache hit rate 7% → 84% on agents consuming ~60M tokens per task; ~70% savings today.
+- [Thomson Reuters Labs: prompt caching in production](https://medium.com/tr-labs-ml-engineering-blog/prompt-caching-the-secret-to-60-cost-reduction-in-llm-applications-6c792a0ac29b) - 60% cost cut; example request $0.34 → $0.14, plus 20% faster responses.
+- [From $720 to $72/month on API costs](https://labeveryday.medium.com/prompt-caching-is-a-must-how-i-went-from-spending-720-to-72-monthly-on-api-costs-3086f3635d63) - Per-request caching math with an 81k-token system prompt: 90% reduction.
+- [Klarna's AI assistant](https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/) - 2.3M chats in month one, the work of ~700 agents, est. $40M profit improvement. (Later re-added humans for complex cases — automation has a quality floor.)
+- [RouteLLM benchmark results](https://lmsys.org/blog/2024-07-01-routellm/) - 85% cost reduction on MT-Bench holding 95% of GPT-4 quality.
+- [Anthropic Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval) - Contextualizing chunks across a 500-page PDF: $6.30 total with prompt caching; 49–67% fewer retrieval failures.
+
+*Have a case study with real numbers? [Submit a PR.](#contributing)*
+
+## Anti-Patterns and Postmortems
+
+Every published runaway-bill story has the same root cause: monitoring without enforcement. Logs and dashboards, but no gate that refuses the next call.
+
+- [How an AI agent ran up a $47,000 bill in 11 days](https://dev.to/dingdawg/how-an-ai-agent-ran-up-a-47000-bill-in-11-days-and-how-to-stop-it-1fk) - Four agents in an infinite clarification loop; weekly bills $127 → $891 → $6,240 → $18,400. A payload-hash loop detector would have caught it on iteration two.
+- [The agent that burned $4,200 in 63 hours](https://medium.com/@sattyamjain96/the-agent-that-burned-4-200-in-63-hours-a-production-ai-postmortem-d38fd9586a85) - A plan→call→429→replan retry loop firing ~4,800 times/hour over a weekend. Nobody on call for cost alerts.
+- [TrueFoundry: agentic token explosion in CI/CD](https://www.truefoundry.com/blog/llm-cost-attribution-agentic-cicd) - $48K of spend in 14 hours from one misbehaving session; retries compounding context quadratically.
+- [Ramp Labs: agents ignore their own budgets](https://x.com/RampLabs/status/2046642262042657176) - Budgets in the prompt don't work; enforcement must live in the platform layer.
+
+---
+
+# Reference
 
 ## Pricing Comparisons
 
 Side-by-side cost comparisons and calculators.
 
-- [LLM Price Check](https://llmpricecheck.com/) - Compare LLM API prices across providers
-- [Artificial Analysis](https://artificialanalysis.ai/) - Price/performance/speed benchmarks
-- [Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) - AWS Bedrock model pricing
-- [Together AI Pricing](https://www.together.ai/pricing) - Open source model hosting pricing
-- [Groq Pricing](https://groq.com/pricing/) - Fast inference pricing
-- [TinyTools AI Cost Calculator](https://tinytools-smoky.vercel.app/ai-cost-calculator/) - Free browser-based calculator for estimating LLM API costs across providers, no signup, runs client-side
-- [LegacyDoc AI LLM Cost Regression Checker](https://www.romanticode.com/tools/llm-cost-regression-checker/) - Browser-based checker for spotting LLM cost regressions before coding-agent workflows scale.
-- [LiteLLM model_prices JSON](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json) - Authoritative price table used by most cost tools.
+- [LLM Price Check](https://llmpricecheck.com/) - Compare LLM API prices across providers.
+- [Artificial Analysis](https://artificialanalysis.ai/) - Price/performance/speed benchmarks.
+- [LiteLLM model_prices JSON](https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.json) - The authoritative price table used by most cost tools.
+- [OpenAI pricing](https://developers.openai.com/api/docs/pricing) / [Anthropic models](https://platform.claude.com/docs/en/about-claude/models/overview) / [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) - The primary sources; check them, not blog posts.
+- [Bedrock Pricing](https://aws.amazon.com/bedrock/pricing/) - AWS Bedrock model pricing.
+- [Together AI Pricing](https://www.together.ai/pricing) - Open source model hosting pricing.
+- [Groq Pricing](https://groq.com/pricing/) - Fast inference pricing.
+- [TinyTools AI Cost Calculator](https://tinytools-smoky.vercel.app/ai-cost-calculator/) - Free browser-based calculator, no signup, runs client-side.
 
 ## Patterns and Snippets
 
@@ -211,7 +367,7 @@ Concrete, copy-pasteable techniques. Each snippet is the smallest thing that mov
 
 ### Anthropic prompt caching
 
-Reads are billed at 10% of input price. ~90% savings on repeated long system prompts.
+Reads are billed at 10% of input price. ~90% savings on repeated long system prompts. (Writes cost 1.25–2× input — confirm reads are landing.)
 
 ```python
 import anthropic
@@ -365,20 +521,53 @@ def safe_chat(messages, model="gpt-4o", max_tokens=1024):
     )
 ```
 
-## Case Studies
+### Loop detector
 
-Real-world examples of AI cost optimization, with concrete numbers.
+The cheapest three lines in this repo. Catches an infinite agent loop on iteration two instead of day eleven.
 
-- [Two Years of Vector Search at Notion](https://www.notion.com/blog/two-years-of-vector-search-at-notion) - Notion Engineering. Migrated embeddings to Ray + turbopuffer: **90% reduction** in embedding infra costs at 10x scale.
-- [How ProjectDiscovery Cut LLM Costs by 59% With Prompt Caching](https://projectdiscovery.io/blog/how-we-cut-llm-cost-with-prompt-caching) - Cache hit rate climbed from 7% → 84% on Opus 4.5 agents consuming ~60M tokens per task.
-- [From $720 to $72/month on API costs](https://labeveryday.medium.com/prompt-caching-is-a-must-how-i-went-from-spending-720-to-72-monthly-on-api-costs-3086f3635d63) - Concrete per-request math on caching: $0.24 → $0.024 per call (90% reduction) with an 81k-token system prompt.
-- [Anthropic Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval) - Contextualizing chunks across a 500-page PDF = $6.30 total with prompt caching. 49–67% drop in retrieval failures.
-- [RouteLLM benchmark results](https://lmsys.org/blog/2024-07-01-routellm/) - 85% cost reduction on MT-Bench, 45% on MMLU, 35% on GSM8K, holding 95% of GPT-4 quality.
-- LG CNS: 50% faster security testing, ~30% lower costs with AWS Security Agent.
-- WGU: Incident resolution dropped from hours to minutes with AWS DevOps Agent.
-- The $20-is-the-new-t2.micro analysis: AI subscription tiers mirror cloud compute pricing (burstable vs committed).
+```python
+import hashlib
 
-*Have a case study? [Submit a PR.](#contributing)*
+seen = set()
+
+def guard_step(tool_name, payload, max_steps=25):
+    h = hashlib.sha256(f"{tool_name}:{payload}".encode()).hexdigest()[:16]
+    if h in seen:
+        raise RuntimeError(f"Loop detected: repeated call {tool_name}")
+    seen.add(h)
+    if len(seen) > max_steps:
+        raise RuntimeError(f"Step budget exceeded: {max_steps}")
+```
+
+## Suggested Reading
+
+The publications worth following to stay current on AI cost and LLM economics. All verified live as of June 2026, ordered roughly by cost-signal density.
+
+**Economics and benchmarks (the core follow list):**
+
+- [SemiAnalysis](https://semianalysis.com) (Dylan Patel) - The reference source for GPU/accelerator economics, datacenter TCO, and inference cost modeling. If you want to know what a token actually costs to serve, start here. ~Weekly; free tier + paid research.
+- [Artificial Analysis](https://artificialanalysis.ai) - Independent leaderboards of price per million tokens, speed, and intelligence-per-dollar across 22+ providers. The de facto pricing table for routing decisions. Continuously updated; free.
+- [FinOps Foundation](https://www.finops.org) - The standards body formalizing FinOps for AI: token economics framework, working groups, annual State of FinOps report. Community membership free.
+- [Tomasz Tunguz](https://www.tomtunguz.com) - Near-daily, chart-heavy posts on AI economics: intelligence-per-dollar, GPU price moves, open-source substitution thresholds. Free.
+- [Epoch AI — Gradient Updates](https://epoch.ai) - Rigorous public datasets on inference cost trends, training compute, and frontier datacenters. The primary source for any cost trendline you cite. Weekly; free.
+
+**Practitioner blogs (cost shows up in the engineering):**
+
+- [Simon Willison's Weblog](https://simonwillison.net) - Annotates every model release with token pricing and runs personal spend experiments. The best running ledger of what LLMs cost in practice. Free.
+- [The Pragmatic Engineer](https://newsletter.pragmaticengineer.com) (Gergely Orosz) - How engineering orgs actually govern AI tooling spend. Weekly; free tier, deep dives paid.
+- [Eugene Yan](https://eugeneyan.com) - Applied LLM system design and evals — the discipline that justifies routing to cheaper models without quality loss. Free.
+- [Hamel Husain](https://hamel.dev) - Evals, measurement, and fine-tuning — the "prove the cheap path works" toolkit. Free.
+- [Interconnects](https://www.interconnects.ai) (Nathan Lambert) - Frontier-lab analysis with a recurring open-vs-closed economics thread: when open weights change your buy-vs-host math. Free tier + paid.
+- [Latent Space](https://www.latent.space) - AI engineering newsletter/podcast; recurring coverage of inference pricing wars and build-vs-buy economics. Free tier + paid.
+
+**Cloud-bill and vendor blogs (filter the pitch, keep the data):**
+
+- [Last Week in AWS](https://www.lastweekinaws.com) (Corey Quinn / Duckbill) - Cloud-bill analysis from people who negotiate enterprise contracts for a living; increasingly covers Bedrock and AI line items. Weekly; free.
+- [Vantage Blog](https://www.vantage.sh/blog) - The best vendor blog on AI-as-cloud-cost right now: token budgeting, GPU instance pricing teardowns. Free.
+- [CloudZero Blog](https://www.cloudzero.com/blog/) - Steady stream of AI ROI and per-provider pricing explainers. Free.
+- [Anthropic Engineering](https://www.anthropic.com/engineering) / [Cloudflare Blog](https://blog.cloudflare.com) - Provider blogs with real cost-lever content: context engineering and agent efficiency (Anthropic); gateway spend limits and caching (Cloudflare). Free.
+
+**If you only follow five:** SemiAnalysis, Artificial Analysis, FinOps Foundation, Simon Willison, Tomasz Tunguz — together they cover supply-side cost (chips and serving), demand-side price (per-token benchmarks), governance (FinOps practice), ground-truth practitioner spend, and the macro money flows.
 
 ## Articles, Papers, and Talks
 
@@ -386,22 +575,21 @@ Real-world examples of AI cost optimization, with concrete numbers.
 - [The token-to-revenue ratio](https://cloudyeti.io/blog) - Measuring AI spend against business output (CloudYeti)
 - [S3 Vectors: 400x cheaper vector search](https://www.youtube.com/watch?v=BWURf-oVFfg) - RAG with S3 Vectors + Bedrock (CloudYeti)
 - [Patterns for Building LLM-based Systems & Products](https://eugeneyan.com/writing/llm-patterns/) - Eugene Yan. Reframes caching as "shifting from LLM generation (dollars) to cache storage (cents)." Best single overview of the seven cost+quality patterns.
-- [FrugalGPT (paper)](https://arxiv.org/abs/2305.05176) - Chen, Zaharia, Zou (Stanford). The foundational LLM-cascade paper. Required reading before building any router.
+- [FrugalGPT (paper)](https://arxiv.org/abs/2305.05176) - Chen, Zaharia, Zou (Stanford). The foundational LLM-cascade paper.
 - [LLMLingua: Innovating LLM efficiency with prompt compression](https://www.microsoft.com/en-us/research/blog/llmlingua-innovating-llm-efficiency-with-prompt-compression/) - Microsoft Research. 20x compression with minimal accuracy loss.
-- [Is Fine-Tuning Still Valuable?](https://hamel.dev/blog/posts/fine_tuning_valuable.html) - Hamel Husain. Fine-tune only after evals + prompting hit a wall; otherwise you're spending training $ to solve a routing problem.
-- [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) - 671B-param frontier model trained for $5.576M / 2.788M H800 GPU-hours. The upper bound on what "frontier" actually has to cost.
+- [Is Fine-Tuning Still Valuable?](https://hamel.dev/blog/posts/fine_tuning_valuable.html) - Hamel Husain. Fine-tune only after evals + prompting hit a wall.
+- [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) - 671B-param frontier model trained for $5.576M. The upper bound on what "frontier" has to cost.
+- [RAG vs long context: a 2026 decision framework](https://open-techstack.com/blog/rag-vs-long-context-2026/) - RAG is up to ~267× cheaper per query at scale, but its fixed costs exceed long-context token costs for small internal tools.
 - [The Economics of $20K/month AI Agents](https://medium.com/@mcunningham1440/the-economics-of-openais-20000-month-ai-agents-26b329f301c4) - Daily rate analysis of always-on agents.
 - [The True Cost of AI Agents: Hourly Pricing](https://retool.com/blog/cost-of-ai-agents-hourly-pricing-model) - Retool's agent cost framework.
-
-*More articles coming. Follow [@CloudYeti](https://www.youtube.com/@CloudYeti) for updates.*
 
 ## Related Lists
 
 Other curated lists adjacent to this one. Pull from them for deeper coverage of specific niches.
 
 - [Awesome-LLMOps](https://github.com/tensorchord/Awesome-LLMOps) - Broadest LLMOps tooling list.
-- [Awesome-LLM-Inference](https://github.com/xlite-dev/Awesome-LLM-Inference) - Inference papers + code (FlashAttention, PagedAttention, INT4/8).
-- [Awesome-Efficient-LLM](https://github.com/horseee/Awesome-Efficient-LLM) - Efficient-LLM research index; well-maintained.
+- [Awesome-LLM-Inference](https://github.com/xlite-dev/Awesome-LLM-Inference) - Inference papers + code.
+- [Awesome-Efficient-LLM](https://github.com/horseee/Awesome-Efficient-LLM) - Efficient-LLM research index.
 - [Awesome-LLM-Compression](https://github.com/HuangOwen/Awesome-LLM-Compression) - Quantization, pruning, distillation, prompt compression.
 - [Awesome-AI-Model-Routing](https://github.com/Not-Diamond/awesome-ai-model-routing) - The canonical routing list.
 
@@ -411,20 +599,34 @@ Open source tools specifically built for AI cost management.
 
 | Tool | What It Does | License |
 |------|-------------|---------|
-| [LiteLLM](https://github.com/BerriAI/litellm) | Unified LLM proxy with spend tracking | MIT |
-| [OpenRouter](https://openrouter.ai/) | Multi-model API with price routing | Commercial |
-| [GPTCache](https://github.com/gptcache/gptcache) | Semantic cache for LLM responses | MIT |
-| [Ollama](https://ollama.com/) | Local model inference | MIT |
-| [vLLM](https://github.com/vllm-project/vllm) | High-throughput serving | Apache 2.0 |
-| [SGLang](https://github.com/sgl-project/sglang) | RadixAttention serving + FP4/FP8/INT4 quant | Apache 2.0 |
-| [LangFuse](https://github.com/langfuse/langfuse) | Open source LLM cost analytics | MIT |
-| [QuotaFlow](https://quotaflow.ai/) | Governed AI quota pooling to reduce wasted subscribed capacity | Commercial |
+| [LiteLLM](https://github.com/BerriAI/litellm) | Unified LLM proxy with spend tracking and budgets | MIT |
+| [Portkey Gateway](https://github.com/Portkey-AI/gateway) | AI gateway: governance, cost controls, MCP | Apache 2.0 |
+| [Bifrost](https://github.com/maximhq/bifrost) | High-throughput Go gateway with hierarchical budgets | Apache 2.0 |
+| [Langfuse](https://github.com/langfuse/langfuse) | Open source LLM cost analytics | MIT |
+| [Helicone](https://github.com/Helicone/helicone) | LLM observability + Rust gateway | Apache 2.0 |
+| [OpenMeter](https://github.com/openmeterio/openmeter) | Usage/token metering for AI billing | Apache 2.0 |
+| [ccusage](https://github.com/ryoppippi/ccusage) | Local coding-agent spend reports | MIT |
+| [GPTCache](https://github.com/zilliztech/GPTCache) | Semantic cache for LLM responses | MIT |
 | [promptfoo](https://github.com/promptfoo/promptfoo) | Eval prompts/models on your data with cost matrix | MIT |
-| [Inspect AI](https://github.com/UKGovernmentBEIS/inspect_ai) | Eval framework for LLMs and agents | MIT |
+| [Inspect](https://github.com/UKGovernmentBEIS/inspect_ai) | Eval framework for LLMs and agents | MIT |
 | [LLMLingua](https://github.com/microsoft/LLMLingua) | Prompt compression up to 20x | MIT |
 | [tokencost](https://github.com/AgentOps-AI/tokencost) | Pre-call $ estimation for 400+ LLMs | MIT |
+| [vLLM](https://github.com/vllm-project/vllm) | High-throughput serving | Apache 2.0 |
+| [SGLang](https://github.com/sgl-project/sglang) | RadixAttention serving + quantization | Apache 2.0 |
 | [SkyPilot](https://github.com/skypilot-org/skypilot) | Cheapest-cloud GPU orchestrator | Apache 2.0 |
+| [Unsloth](https://github.com/unslothai/unsloth) | Fast, low-VRAM fine-tuning/distillation | Apache 2.0 |
 | [FastEmbed](https://github.com/qdrant/fastembed) | CPU-friendly quantized embeddings | Apache 2.0 |
+| [Ollama](https://ollama.com/) | Local model inference | MIT |
+
+## Community Tools
+
+Tools submitted by the community via PR land here first. An entry gets promoted into the curated sections above once it proves out — real adoption, active maintenance, numbers people can verify. Same bar as everything else: it must help someone cut or measure AI spend.
+
+- [traceAI](https://github.com/future-agi/traceAI) - OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span.
+- [ai-evaluation](https://github.com/future-agi/ai-evaluation) - Eval framework with 50+ metrics, LLM-as-Judge, and guardrail scanners; use to qualify cheaper models against your workload.
+- [FerryAPI](https://www.ferryapi.io/) - OpenAI-compatible gateway with prepaid billing, customer API keys, and usage records.
+- [LegacyDoc LLM Cost Regression Checker](https://www.romanticode.com/tools/llm-cost-regression-checker/) - Browser-based checker for spotting LLM cost regressions before coding-agent workflows scale.
+- [QuotaFlow](https://quotaflow.ai/) - Governed AI quota pooling to reduce wasted subscribed capacity.
 
 ---
 
@@ -438,10 +640,9 @@ The bar: every link must help someone reduce their AI costs or measure their AI 
 
 ## About
 
-Maintained by [Saurav Sharma](https://linkedin.com/in/saurav-sharma-cloud) — ex-Amazon SDE, 13x AWS certified. I help teams use AI without wasting money.
+Maintained by [Saurav Sharma](https://linkedin.com/in/saurav-sharma-cloud) — ex-Amazon SDE, 12x AWS certified. I help teams use AI without wasting money.
 
-- Workshops and bootcamps: [cloudyeti.io/catalog](https://cloudyeti.io/catalog)
-- Book a discovery call: [cloudyeti.io/chat](https://cloudyeti.io/chat)
+- Want this run against your real billing data, with a ranked fix list and dollar figures? That's the [AI Cost Audit](https://cloudyeti.io). Start with a [free 30-minute call](https://cloudyeti.io/chat).
 - YouTube: [@CloudYeti](https://www.youtube.com/@CloudYeti)
 
 ---

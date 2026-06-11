@@ -20,9 +20,10 @@ Thanks for contributing. The goal is simple: help teams spend less on AI without
 ## How to contribute
 
 1. Fork the repo
-2. Add your resource to the appropriate section in README.md
-3. Follow the existing format: `[Resource Name](URL) - One-line description`
-4. Submit a PR with a brief explanation of why this resource helps reduce AI costs
+2. **Adding your own tool or product?** Add it to the **Community Tools** section in README.md — that's where new submissions land. Entries get promoted into the curated sections once they prove out (real adoption, active maintenance, verifiable numbers).
+3. Adding a third-party resource (article, case study, benchmark, established OSS tool)? Add it to the appropriate curated section.
+4. Follow the existing format: `[Resource Name](URL) - One-line description`
+5. Submit a PR with a brief explanation of why this resource helps reduce AI costs
 
 ## Format
 
