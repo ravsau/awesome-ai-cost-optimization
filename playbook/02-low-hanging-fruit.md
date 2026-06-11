@@ -1,82 +1,56 @@
-# Low-Hanging Fruit: The First Week
+# Low-Hanging Fruit
 
-Part of the [AI Cost Optimization Playbook](00-start-here.md). Previous: [Must-Dos](01-must-dos.md) · Next: [Big Levers](03-big-levers.md)
+[Playbook](00-start-here.md) · Previous: [Must-Dos](01-must-dos.md) · Next: [Big Levers](03-big-levers.md)
 
----
-
-Everything on this page ships in under a week, carries near-zero risk, and routinely cuts a bill 30–70%. If you do nothing else from this repo, do this page.
-
-All prices verified June 2026 against the official pricing pages. Prices move; the patterns don't.
+Ships in days, low risk. Prices verified June 2026 against official pricing pages.
 
 ## 1. Prompt caching
 
-The same long system prompt sent a million times should not bill at full price a million times.
-
-| Provider | How it works | The numbers |
+| Provider | How | Numbers |
 |---|---|---|
-| Anthropic | Opt-in: you set `cache_control` breakpoints. Prefix-matched. | Cache reads bill at 0.1× the input price. Cache **writes cost extra**: 1.25× input for the 5-minute TTL, 2× for the 1-hour TTL. |
-| OpenAI | Automatic on any prompt ≥1,024 tokens. No code change. | Cached input tokens bill at 10% of the input price. No write surcharge. Entries live ~5–10 minutes. |
-| Google Gemini | Implicit caching on by default (2.5+ models); explicit caching adds a guarantee. | Cached tokens ~10% of input price; explicit caching adds $1.00 per million tokens per hour of storage. |
+| [Anthropic](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) | Opt-in `cache_control` breakpoints, prefix-matched | Reads 0.1× input. **Writes cost extra:** 1.25× (5-min TTL) or 2× (1-hour TTL) |
+| [OpenAI](https://developers.openai.com/api/docs/guides/prompt-caching) | Automatic, prompts ≥1,024 tokens | Cached input = 10% of input price, no write cost |
+| [Gemini](https://ai.google.dev/gemini-api/docs/caching) | Implicit by default (2.5+) | Cached ~10% of input; explicit adds $1.00/M tokens/hour storage |
 
-- [Anthropic prompt caching docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
-- [OpenAI prompt caching docs](https://developers.openai.com/api/docs/guides/prompt-caching)
-- [Gemini context caching docs](https://ai.google.dev/gemini-api/docs/caching)
+Traps: caching is prefix-matched — a timestamp at the top of the system prompt means zero hits. And on Anthropic, an unread cache costs more than no cache; check `cache_read_input_tokens` is non-zero.
 
-Two traps worth knowing:
+## 2. Batch what can wait
 
-1. **One timestamp kills the cache.** Caching is prefix-matched. A `Today is {date}` line at the top of your system prompt means zero cache hits forever. Stable content first, variable content last.
-2. **On Anthropic, an unread cache costs more than no cache.** You pay 1.25–2× to write. Check `cache_read_input_tokens` in your responses — if it's zero, you're paying a surcharge for nothing.
+Same tokens, 50% off the on-demand token price, all three providers. Anything on a cron qualifies: evals, embedding backfills, nightly jobs.
 
-## 2. Batch everything that can wait
+- [Anthropic Message Batches](https://platform.claude.com/docs/en/build-with-claude/batch-processing) — stacks with caching.
+- [OpenAI Batch](https://developers.openai.com/api/docs/guides/batch) — with caching, ~75% off repeated prompts.
+- [OpenAI Flex](https://developers.openai.com/api/docs/guides/flex-processing) — batch pricing on sync calls, beta.
+- [Gemini batch mode](https://ai.google.dev/gemini-api/docs/pricing).
+- Inverse exists: [OpenAI priority processing](https://openai.com/api-priority-processing/) is ~2–2.5× standard — don't pay it by accident.
 
-Every major provider sells the same tokens at **50% off the on-demand token price** if you can wait hours instead of seconds. Evals, embedding backfills, nightly summaries, report generation — if it runs on a cron, it has no business on the synchronous API.
+## 3. Downshift by task
 
-- [Anthropic Message Batches](https://platform.claude.com/docs/en/build-with-claude/batch-processing) — 50% off all token usage, up to 100K requests per batch, most finish under an hour. Stacks with prompt caching.
-- [OpenAI Batch API](https://developers.openai.com/api/docs/guides/batch) — flat 50% off every model, 24-hour window. Stacked with caching, repeated prompts come out ~75% off.
-- [OpenAI Flex processing](https://developers.openai.com/api/docs/guides/flex-processing) — batch-level pricing on *synchronous* requests; slower and may return "resource unavailable," but no batch-file plumbing. Beta.
-- [Gemini batch mode](https://ai.google.dev/gemini-api/docs/pricing) — 50% off all paid models.
-- Know the inverse exists so you don't pay it by accident: [OpenAI priority processing](https://openai.com/api-priority-processing/) charges roughly 2–2.5× the standard rate for lower latency.
+Cheap tiers, per million tokens (input/output): Gemini 2.5 Flash-Lite $0.10/$0.40 · gpt-5.4-nano $0.20/$1.25 · gpt-5.4-mini $0.75/$4.50 · Claude Haiku 4.5 $1/$5. The flagship gap is 25–50×.
 
-## 3. Downshift the model, task by task
+Route classification/extraction/summarization to the cheap tier. Gate every downgrade with the golden set from [Must-Dos](01-must-dos.md).
 
-Nobody needs the flagship model to classify a support ticket. The price gap between tiers is now 25–50×, so even rough routing pays for itself. Current cheap tiers (per million tokens, input / output):
+## 4. Stop paying for unused tokens
 
-| Model | Input | Output |
-|---|---|---|
-| Gemini 2.5 Flash-Lite | $0.10 | $0.40 |
-| gpt-5.4-nano | $0.20 | $1.25 |
-| gpt-5.4-mini | $0.75 | $4.50 |
-| Claude Haiku 4.5 | $1.00 | $5.00 |
+- Tool definitions bill as input on **every call**, plus a 290–675 token hidden system prompt ([docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)). Delete tools the model never calls.
+- Structured outputs kill retry-on-bad-parse — each retry is a full-price request ([Anthropic](https://platform.claude.com/docs/en/build-with-claude/structured-outputs), [OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs)).
+- Set `max_tokens`; use stop sequences.
+- [`count_tokens`](https://platform.claude.com/docs/en/build-with-claude/token-counting) is free — measure the system prompt before shipping it.
 
-Sources: [OpenAI pricing](https://developers.openai.com/api/docs/pricing), [Claude models overview](https://platform.claude.com/docs/en/about-claude/models/overview), [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing).
+## 5. Dev/test hygiene
 
-The discipline: downshift **by task, not by app**. Route classification, extraction, and summarization to the cheap tier; keep the frontier model for the 20% of calls that genuinely need it. Prove the downgrade with the golden set from [Must-Dos](01-must-dos.md) before shipping it.
+Surprise bills often come from dev, not prod (a retry loop in CI over a weekend).
 
-## 4. Stop paying for tokens you don't use
+- [vcrpy](https://github.com/kevin1024/vcrpy) — record once, replay in CI.
+- [llmock](https://github.com/CopilotKit/llmock) / [mockllm](https://github.com/StacklokLabs/mockllm) — mock LLM servers.
+- [LiteLLM per-key budgets](https://docs.litellm.ai/docs/proxy/users) — caps the blast radius of any runaway script.
 
-- **Your tool list is a subscription you pay per request.** Tool definitions bill as input tokens on every single call, used or not, plus a hidden tool-use system prompt of 290–675 tokens. Twenty tools at 200 tokens each is 4,000 tokens of overhead on every request. Delete the tools the model never calls — your logs will tell you which. ([Anthropic tool-use docs](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview))
-- **Structured outputs kill the retry loop.** Every retry on a bad JSON parse is a full-price request. Schema-enforced output makes the first answer parse. ([Anthropic structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs), [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs))
-- **Set `max_tokens` deliberately and use stop sequences.** An uncapped generation on an output-priced model is an open tab.
-- **Measure before you ship.** Anthropic's [`count_tokens` endpoint](https://platform.claude.com/docs/en/build-with-claude/token-counting) is free. Know what your system prompt costs before sending it a million times.
+## Checklist
 
-## 5. Dev and test hygiene
-
-The biggest surprise bills come from development, not production. A retry loop in CI hitting a flagship model all weekend beats any production workload.
-
-- [vcrpy](https://github.com/kevin1024/vcrpy) — record real API interactions once, replay them in every CI run. Test cost drops to roughly zero.
-- [llmock](https://github.com/CopilotKit/llmock) — deterministic mock LLM server with streaming and record/replay.
-- [mockllm](https://github.com/StacklokLabs/mockllm) — YAML-configured mock server mimicking OpenAI/Anthropic wire formats.
-- [Ollama](https://github.com/ollama/ollama) — run open models locally for dev loops and smoke tests. $0 per million tokens.
-- [LiteLLM per-key budgets](https://docs.litellm.ai/docs/proxy/users) — a `max_budget` on every dev key caps the blast radius of any runaway script, forever, for an afternoon of setup.
-
----
-
-## The first-week checklist
-
-- [ ] Stable content moved to the front of every long prompt; caching enabled; `cache_read_input_tokens` confirmed non-zero
-- [ ] Every cron-driven LLM job moved to the batch API
-- [ ] One task downshifted to a cheap-tier model, gated by a golden-set eval
-- [ ] Unused tool definitions deleted; `max_tokens` set everywhere
-- [ ] CI mocked or recorded; per-key budgets on every dev key
+- [ ] Stable content first in long prompts; cache reads confirmed non-zero
+- [ ] Cron jobs on batch API
+- [ ] One task downshifted, eval-gated
+- [ ] Unused tools deleted; `max_tokens` set
+- [ ] CI mocked; budgets on dev keys
 
 Next: [Big Levers →](03-big-levers.md)

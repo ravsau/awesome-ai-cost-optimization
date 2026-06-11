@@ -4,20 +4,20 @@ A curated list of tools, techniques, benchmarks, and resources for reducing AI i
 
 Most teams overspend on AI inference, underuse open source models, and run agentic workflows at a fraction of their potential. This repo is for engineers and leaders who want to fix that.
 
-The list is organized the way the work should actually be done: **measure first, take the easy money, then pull the big levers, then build the habits that keep the bill from growing back.** If you want the narrative version with the order of operations spelled out, start with the playbook.
+Organized by leverage: measure first, take the easy wins, then the structural changes.
 
 ---
 
 ## The Playbook
 
-A field guide in six parts — what to do, in what order, and when each move is worth it:
+The short version — what to do, in what order:
 
-1. [Start Here — how to think about AI cost](playbook/00-start-here.md)
-2. [Must-Dos — measure before you optimize](playbook/01-must-dos.md)
-3. [Low-Hanging Fruit — the first week](playbook/02-low-hanging-fruit.md)
-4. [Big Levers — structural changes worth real engineering](playbook/03-big-levers.md)
-5. [Culture — the habits that keep the bill down](playbook/04-culture.md)
-6. [The Audit Checklist — run it quarterly](playbook/05-audit-checklist.md)
+1. [Start Here — the order of operations](playbook/00-start-here.md)
+2. [Must-Dos — measure first](playbook/01-must-dos.md)
+3. [Low-Hanging Fruit — days of work](playbook/02-low-hanging-fruit.md)
+4. [Big Levers — weeks of work, with break-even lines](playbook/03-big-levers.md)
+5. [Culture — what keeps fixes from regressing](playbook/04-culture.md)
+6. [Audit Checklist — 15 questions, quarterly](playbook/05-audit-checklist.md)
 
 ---
 
@@ -61,11 +61,11 @@ A field guide in six parts — what to do, in what order, and when each move is 
 
 # Tier 0 — Must-Dos
 
-None of this saves money directly. All of it is what makes saving money possible — and safe. If API keys are scattered across laptops and services, you have no spend data to optimize.
+Visibility and guardrails before optimization. None of this saves money directly; it's what makes the rest possible.
 
 ## Monitoring, Observability, and Gateways
 
-You can't optimize what you don't measure. A gateway gives every request a paper trail: who called, which model, how many tokens, what it cost.
+A gateway gives every request a record: who called, which model, how many tokens, what it cost.
 
 **Gateways:**
 
@@ -85,22 +85,20 @@ You can't optimize what you don't measure. A gateway gives every request a paper
 - [Claude Code monitoring](https://code.claude.com/docs/en/monitoring-usage) - Native OpenTelemetry export: tokens, cost, cache efficiency by user/model/subagent.
 - [claude-code-otel](https://github.com/ColeMurray/claude-code-otel) - Ready-made OTel + Prometheus + Grafana stack for team-level agent spend.
 
-**Key insight:** Route everything through one gateway on day one — not for fallbacks or caching, for the receipts. An afternoon of work.
-
 ## Budgets and Guardrails
 
-A budget without enforcement is a hope. Every key gets a dollar cap and a model allow-list before it ships. Every published runaway-bill postmortem had monitoring; none had a gate.
+Every key gets a dollar cap and a model allow-list before it ships — including dev and CI keys.
 
 - [LiteLLM budgets and rate limits](https://docs.litellm.ai/docs/proxy/users) - Per-key/user/team caps with daily/weekly/monthly resets; hard caps return 429, soft caps alert.
 - [Cloudflare AI Gateway spend limits](https://blog.cloudflare.com/ai-gateway-spend-limits/) - Shipped June 2026: dollar budgets per model/provider/custom attribute, with optional downgrade-to-cheaper-model instead of blocking.
 - [LiteLLM agent iteration budgets](https://docs.litellm.ai/docs/a2a_iteration_budgets) - Caps agent loop iterations; the closest thing to a native runaway-agent kill switch.
 - [Traceloop: from bills to budgets](https://www.traceloop.com/blog/from-bills-to-budgets-how-to-track-llm-token-usage-and-cost-per-user) - Tag every call with user/feature/team so budgets are per-dimension, not per-invoice.
 
-**Key insight:** Don't ask agents to manage their own budgets. Ramp tried; [the agents ignored them](https://x.com/RampLabs/status/2046642262042657176). Enforcement belongs in the gateway, never in the prompt.
+Note: budgets written into an agent's prompt don't work — [Ramp's agents ignored them](https://x.com/RampLabs/status/2046642262042657176). Enforce in the gateway.
 
 ## Evals and Model Comparison
 
-Before you can route to a cheaper model, you need to prove it's good enough on your actual tasks. Without a baseline, "switch to the cheaper model" is a quality gamble, not a decision.
+Before routing to a cheaper model, prove it's good enough on your actual tasks.
 
 - [promptfoo](https://github.com/promptfoo/promptfoo) - Open source CLI to test prompts, models, and RAG against your own dataset. ~15 minutes to wire into CI. Used by OpenAI and Anthropic.
 - [Inspect](https://github.com/UKGovernmentBEIS/inspect_ai) - UK AI Security Institute's framework; 200+ pre-built evals, strong for agentic and tool-use evals.
@@ -110,11 +108,11 @@ Before you can route to a cheaper model, you need to prove it's good enough on y
 - [Ragas](https://github.com/explodinggradients/ragas) - Eval framework specifically for RAG pipelines.
 - [OpenAI Evals](https://github.com/openai/evals) - Open framework for evaluating LLMs and LLM systems.
 
-**Key insight:** The downshift workflow: pull 50–100 real examples from production traces → score the current model as baseline → run the cheaper candidate against the same set → ship only if nothing critical regresses. Most teams skip this step and overpay forever.
+The downshift workflow: 50–100 real examples from production traces → baseline the current model → run the cheaper candidate → ship only if nothing critical regresses.
 
 ## FinOps and Unit Economics
 
-The metric that matters is cost per completed task — per resolved ticket, per merged PR — not cost per API call. Agent loops make request counts meaningless.
+Measure cost per completed task — per resolved ticket, per merged PR — not per API call; agent loops make request counts meaningless.
 
 - [FinOps for AI (FinOps Foundation)](https://www.finops.org/wg/finops-for-ai-overview/) - The official framework; AI is now a formal FinOps technology category. Cost-per-token as a first-class KPI; showback before chargeback.
 - [CloudZero: FinOps for AI](https://www.cloudzero.com/blog/finops-for-ai/) - Why traditional tagging breaks for LLMs and how to capture allocation at the gateway layer instead.
@@ -123,13 +121,13 @@ The metric that matters is cost per completed task — per resolved ticket, per 
 - [Orb](https://www.withorb.com/) - Usage-based billing engine; metrics defined in SQL.
 - [TrueFoundry: team budgets and chargeback](https://www.truefoundry.com/blog/llm-cost-attribution-team-budgets) - Chargeback reporting down to team / agent / model.
 
-**Key insight:** Two extra metadata fields on every request — who, and which feature — is the difference between "we spent $40K on AI" and "the support summarizer costs $0.11 per ticket." You cannot retrofit attribution. (Signal worth knowing: Stripe bought Metronome, the metering layer behind OpenAI's and Anthropic's billing, for ~$1B in January 2026.)
+Two metadata fields on every request — team and feature — turn "we spent $40K on AI" into "the support summarizer costs $0.11 per ticket." Attribution can't be retrofitted.
 
 ---
 
 # Tier 1 — Low-Hanging Fruit
 
-Everything here ships in under a week, carries near-zero risk, and routinely cuts a bill 30–70%.
+Ships in days, low risk.
 
 ## Inference Optimization
 
@@ -156,11 +154,11 @@ Reduce cost per token without changing models.
 - [Structured Outputs (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) / [(OpenAI)](https://developers.openai.com/api/docs/guides/structured-outputs) - Schema-enforced output kills the retry-on-bad-parse loop; every retry is a full-price request.
 - [Token counting (Anthropic)](https://platform.claude.com/docs/en/build-with-claude/token-counting) - Free endpoint. Know what your system prompt costs before sending it a million times.
 
-**Key insight:** Caching is prefix-matched — one timestamp at the top of your system prompt means zero cache hits forever. Stable content first, variable content last, then check `cache_read_input_tokens` is actually non-zero.
+Caching is prefix-matched — a timestamp at the top of the system prompt means zero cache hits. Stable content first, then check `cache_read_input_tokens` is non-zero.
 
 ## Dev and Test Hygiene
 
-The biggest surprise bills come from development, not production. A retry loop in CI hitting a flagship model all weekend beats any prod workload.
+Surprise bills often come from dev, not prod — e.g. a retry loop in CI running all weekend.
 
 - [vcrpy](https://github.com/kevin1024/vcrpy) - Record real API interactions once, replay in every CI run; test cost drops to ~$0.
 - [llmock](https://github.com/CopilotKit/llmock) - Deterministic mock LLM server with streaming and record/replay.
@@ -172,11 +170,11 @@ The biggest surprise bills come from development, not production. A retry loop i
 
 # Tier 2 — Big Levers
 
-Weeks of work, 50–90% cuts, real failure modes. Each lever has a "when it's worth it" line — the [playbook page](playbook/03-big-levers.md) spells them out.
+Weeks of work, bigger cuts, real failure modes. Break-even lines in the [playbook page](playbook/03-big-levers.md).
 
 ## Model Selection and Routing
 
-Picking the right model for the right task is the single biggest cost lever. The price gap between flagship and cheap tiers is now 25–50×. Stop using Opus for tasks Haiku can handle.
+The flagship-to-cheap-tier price gap is 25–50×. Stop using Opus for tasks Haiku can handle.
 
 - [RouteLLM](https://github.com/lm-sys/RouteLLM) - The canonical OSS router (LMSYS). Published result: 85% cost reduction at 95% of GPT-4 quality on MT-Bench.
 - [LLMRouter](https://github.com/ulab-uiuc/LLMRouter) - UIUC's routing library (Dec 2025): 16+ routing methods — single-round, multi-round, agentic, personalized.
@@ -187,11 +185,11 @@ Picking the right model for the right task is the single biggest cost lever. The
 - [Cascade Routing (ETH)](https://github.com/eth-sri/cascade-routing) - Unified routing + cascading; beats either alone on the cost/quality frontier.
 - [Artificial Analysis](https://artificialanalysis.ai/) - Independent benchmarks with price/performance rankings.
 
-**Key insight:** Route the easy 80% to small/cheap models and reserve frontier models for tasks that need them — but downshift by task, not by app, and gate every downgrade with an eval.
+Downshift by task, not by app, and gate every downgrade with an eval.
 
 ## Open Source Models
 
-Open source can handle 80% of what proprietary APIs do, at a fraction of the cost.
+Open-weight options for tasks that don't need a frontier API, and for self-hosting/distillation.
 
 - [Ollama](https://ollama.com/) - Run open source models locally with one command.
 - [Qwen](https://huggingface.co/Qwen) - Strong open-weight family; small versions run on laptops. The default local-agent pick.
@@ -200,11 +198,9 @@ Open source can handle 80% of what proprietary APIs do, at a fraction of the cos
 - [DeepSeek](https://github.com/deepseek-ai) - Cost-efficient open models; DeepSeek-V3 was trained for ~$5.6M total — the upper bound on what "frontier" actually has to cost.
 - [LMSYS Chatbot Arena](https://chat.lmsys.org/) - Crowdsourced rankings; find where open source matches proprietary.
 
-**Key insight:** Run open models locally for development, testing, and low-stakes tasks. Use APIs for production workloads that need frontier capability. Hybrid architecture = massive cost reduction.
-
 ## Self-Hosting and Serving Infrastructure
 
-Self-hosting is a payroll decision, not a GPU decision. The GPU math works at ~5–10M tokens/day, but the 10–20% of an engineer it permanently eats (~$4–6K/month) means you really want 10M+ steady tokens/day before it beats a cheap API. Spiky traffic kills it — idle GPUs bill the same as busy ones.
+Only pays off at sustained volume (~10M+ tokens/day) — and it permanently costs part of an engineer (~$4–6K/month). Idle GPUs bill the same as busy ones.
 
 **Inference engines:**
 
@@ -236,7 +232,7 @@ Self-hosting is a payroll decision, not a GPU decision. The GPU math works at ~5
 - [RunPod](https://www.runpod.io/pricing) / [Vast.ai](https://vast.ai/pricing) - H100 from ~$1.49–2.69/hr depending on tier and reliability tolerance.
 - [BentoML / OpenLLM](https://github.com/bentoml/OpenLLM) - One-command OpenAI-compatible serving of any open model on any cloud.
 
-**Key insight:** Rough break-even at June 2026 prices: vs Sonnet-class API pricing ($3 in / $15 out per million), self-hosting a quantized 70B wins clearly by ~10M tokens/day. Vs Haiku-class pricing, break-even pushes to ~15–25M tokens/day. Under ~5M tokens/day, don't self-host for cost reasons — privacy and latency are separate arguments.
+Rough break-even at June 2026 prices: vs Sonnet-class API pricing, self-hosting a quantized 70B wins by ~10M tokens/day; vs Haiku-class, ~15–25M/day. Below that, privacy and latency are the only arguments.
 
 ## Fine-Tuning and Distillation
 
@@ -300,26 +296,24 @@ A bet on your own forecast. Buy only after 30–60 days of real pay-as-you-go te
 - [AWS Bedrock provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) - Billed hourly per model unit; no-commitment, 1-month, and 6-month tiers. The 6-month commit typically runs 20–40% below the 1-month hourly rate.
 - [nOps Bedrock pricing guide](https://www.nops.io/blog/amazon-bedrock-pricing/) - Practitioner walkthrough: on-demand vs batch (50% off token rates) vs provisioned, with model-unit examples.
 
-**Key insight:** A committed unit running at 40% utilization is a price increase wearing a discount costume.
-
 ---
 
 # Tier 3 — Culture
 
-Every technical fix decays. Prompts grow back; new features ship on the flagship model "just to be safe." Only habits compound.
+Technical fixes regress; these are the habits that hold them.
 
 ## Cost-Aware Engineering Culture
 
-The bill goes to whoever can change it. If AI spend rolls up only to finance, nothing improves — finance can't rewrite a prompt.
+Cost visibility belongs with the engineers who can change it, not just finance.
 
 - [FinOps for AI (FinOps Foundation)](https://www.finops.org/wg/finops-for-ai-overview/) - 78% of FinOps practices now report into the CTO/CIO org, up 18 points since 2023. The bill is moving from finance to engineering.
 - [Ramp: The Trillion-Dollar AI Blindspot](https://ramp.com/blog/trillion-dollar-ai-blindspot) - Customer data: average monthly AI token spend up 13× since January 2025.
 - [Ramp Builders: a unified pipeline for AI token spend](https://builders.ramp.com/post/ai-token-spend-management) - How Ramp's engineers built spend attribution.
 - [Inside Ramp: the AI adoption playbook (Geoff Charles)](https://creatoreconomy.so/p/inside-ramp-the-32b-company-ai-agents-geoff-charles) - Define levels, measure publicly, remove constraints — with cost governance built into the rollout.
 - [The Pragmatic Engineer: AI's impact on engineers in 2026](https://newsletter.pragmaticengineer.com/p/the-impact-of-ai-on-software-engineers-2026) - What companies actually pay: max-tier coding-agent plans at $100–200/engineer/month; budget orgs on $20 Copilot tiers.
-- [Uber caps coding-agent spend](https://www.washingtontimes.com/news/2026/jun/3/uber-capping-internal-use-ai-coding-software-blowing-budget/) - Annual AI coding budget gone in 4 months → $1,500/month cap per tool per engineer. Caps as a visibility tool: generous, visible, enforced.
+- [Uber caps coding-agent spend](https://www.washingtontimes.com/news/2026/jun/3/uber-capping-internal-use-ai-coding-software-blowing-budget/) - Annual AI coding budget gone in 4 months → $1,500/month cap per tool per engineer.
 
-**Key insight:** Put cost per feature on the same dashboard as latency and error rate and engineers fix it on their own. The rituals: a monthly 30-minute cost review, a named owner per spend line, a postmortem for every cost anomaly — same as an outage.
+Put cost per feature on the same dashboard as latency and error rate.
 
 ## Case Studies
 
@@ -337,7 +331,7 @@ Real-world examples with concrete numbers.
 
 ## Anti-Patterns and Postmortems
 
-Every published runaway-bill story has the same root cause: monitoring without enforcement. Logs and dashboards, but no gate that refuses the next call.
+Common thread: monitoring without enforcement — dashboards, but no gate that refuses the next call.
 
 - [How an AI agent ran up a $47,000 bill in 11 days](https://dev.to/dingdawg/how-an-ai-agent-ran-up-a-47000-bill-in-11-days-and-how-to-stop-it-1fk) - Four agents in an infinite clarification loop; weekly bills $127 → $891 → $6,240 → $18,400. A payload-hash loop detector would have caught it on iteration two.
 - [The agent that burned $4,200 in 63 hours](https://medium.com/@sattyamjain96/the-agent-that-burned-4-200-in-63-hours-a-production-ai-postmortem-d38fd9586a85) - A plan→call→429→replan retry loop firing ~4,800 times/hour over a weekend. Nobody on call for cost alerts.
@@ -523,7 +517,7 @@ def safe_chat(messages, model="gpt-4o", max_tokens=1024):
 
 ### Loop detector
 
-The cheapest three lines in this repo. Catches an infinite agent loop on iteration two instead of day eleven.
+Catches an infinite agent loop on iteration two instead of day eleven.
 
 ```python
 import hashlib
@@ -545,7 +539,7 @@ The publications worth following to stay current on AI cost and LLM economics. A
 
 **Economics and benchmarks (the core follow list):**
 
-- [SemiAnalysis](https://semianalysis.com) (Dylan Patel) - The reference source for GPU/accelerator economics, datacenter TCO, and inference cost modeling. If you want to know what a token actually costs to serve, start here. ~Weekly; free tier + paid research.
+- [SemiAnalysis](https://semianalysis.com) (Dylan Patel) - The reference source for GPU economics, datacenter TCO, and what a token actually costs to serve. ~Weekly; free tier + paid research.
 - [Artificial Analysis](https://artificialanalysis.ai) - Independent leaderboards of price per million tokens, speed, and intelligence-per-dollar across 22+ providers. The de facto pricing table for routing decisions. Continuously updated; free.
 - [FinOps Foundation](https://www.finops.org) - The standards body formalizing FinOps for AI: token economics framework, working groups, annual State of FinOps report. Community membership free.
 - [Tomasz Tunguz](https://www.tomtunguz.com) - Near-daily, chart-heavy posts on AI economics: intelligence-per-dollar, GPU price moves, open-source substitution thresholds. Free.
