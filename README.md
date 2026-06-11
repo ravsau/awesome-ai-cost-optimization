@@ -555,33 +555,13 @@ def guard_step(tool_name, payload, max_steps=25):
 
 ## Suggested Reading
 
-The publications worth following to stay current on AI cost and LLM economics. All verified live as of June 2026, ordered roughly by cost-signal density.
+Publications directly about AI cost. Verified live as of June 2026.
 
-**Economics and benchmarks (the core follow list):**
-
-- [SemiAnalysis](https://semianalysis.com) (Dylan Patel) - The reference source for GPU economics, datacenter TCO, and what a token actually costs to serve. ~Weekly; free tier + paid research.
-- [Artificial Analysis](https://artificialanalysis.ai) - Independent leaderboards of price per million tokens, speed, and intelligence-per-dollar across 22+ providers. The de facto pricing table for routing decisions. Continuously updated; free.
-- [FinOps Foundation](https://www.finops.org) - The standards body formalizing FinOps for AI: token economics framework, working groups, annual State of FinOps report. Community membership free.
+- [SemiAnalysis](https://semianalysis.com) (Dylan Patel) - GPU economics, datacenter TCO, what a token actually costs to serve. ~Weekly; free tier + paid research.
+- [Artificial Analysis](https://artificialanalysis.ai) - Price per million tokens, speed, and intelligence-per-dollar leaderboards across 22+ providers. Continuously updated; free.
+- [FinOps Foundation](https://www.finops.org) - The standards body for FinOps for AI: token economics framework, working groups, State of FinOps report. Community membership free.
 - [Tomasz Tunguz](https://www.tomtunguz.com) - Near-daily, chart-heavy posts on AI economics: intelligence-per-dollar, GPU price moves, open-source substitution thresholds. Free.
-- [Epoch AI — Gradient Updates](https://epoch.ai) - Rigorous public datasets on inference cost trends, training compute, and frontier datacenters. The primary source for any cost trendline you cite. Weekly; free.
-
-**Practitioner blogs (cost shows up in the engineering):**
-
-- [Simon Willison's Weblog](https://simonwillison.net) - Annotates every model release with token pricing and runs personal spend experiments. The best running ledger of what LLMs cost in practice. Free.
-- [The Pragmatic Engineer](https://newsletter.pragmaticengineer.com) (Gergely Orosz) - How engineering orgs actually govern AI tooling spend. Weekly; free tier, deep dives paid.
-- [Eugene Yan](https://eugeneyan.com) - Applied LLM system design and evals — the discipline that justifies routing to cheaper models without quality loss. Free.
-- [Hamel Husain](https://hamel.dev) - Evals, measurement, and fine-tuning — the "prove the cheap path works" toolkit. Free.
-- [Interconnects](https://www.interconnects.ai) (Nathan Lambert) - Frontier-lab analysis with a recurring open-vs-closed economics thread: when open weights change your buy-vs-host math. Free tier + paid.
-- [Latent Space](https://www.latent.space) - AI engineering newsletter/podcast; recurring coverage of inference pricing wars and build-vs-buy economics. Free tier + paid.
-
-**Cloud-bill and vendor blogs (filter the pitch, keep the data):**
-
-- [Last Week in AWS](https://www.lastweekinaws.com) (Corey Quinn / Duckbill) - Cloud-bill analysis from people who negotiate enterprise contracts for a living; increasingly covers Bedrock and AI line items. Weekly; free.
-- [Vantage Blog](https://www.vantage.sh/blog) - The best vendor blog on AI-as-cloud-cost right now: token budgeting, GPU instance pricing teardowns. Free.
-- [CloudZero Blog](https://www.cloudzero.com/blog/) - Steady stream of AI ROI and per-provider pricing explainers. Free.
-- [Anthropic Engineering](https://www.anthropic.com/engineering) / [Cloudflare Blog](https://blog.cloudflare.com) - Provider blogs with real cost-lever content: context engineering and agent efficiency (Anthropic); gateway spend limits and caching (Cloudflare). Free.
-
-**If you only follow five:** SemiAnalysis, Artificial Analysis, FinOps Foundation, Simon Willison, Tomasz Tunguz — together they cover supply-side cost (chips and serving), demand-side price (per-token benchmarks), governance (FinOps practice), ground-truth practitioner spend, and the macro money flows.
+- [Epoch AI — Gradient Updates](https://epoch.ai) - Public datasets on inference cost trends, training compute, frontier datacenters. Weekly; free.
 
 ## Articles, Papers, and Talks
 
