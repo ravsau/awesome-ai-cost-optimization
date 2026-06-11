@@ -644,6 +644,7 @@ Maintained by [Saurav Sharma](https://linkedin.com/in/saurav-sharma-cloud) — e
 
 - Want this run against your real billing data, with a ranked fix list and dollar figures? That's the [AI Cost Audit](https://cloudyeti.io). Start with a [free 30-minute call](https://cloudyeti.io/chat).
 - YouTube: [@CloudYeti](https://www.youtube.com/@CloudYeti)
+- Want your tool in front of this audience? See [SPONSORS.md](SPONSORS.md).
 
 ---
 
