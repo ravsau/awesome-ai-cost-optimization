@@ -622,6 +622,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [LegacyDoc LLM Cost Regression Checker](https://www.romanticode.com/tools/llm-cost-regression-checker/) - Browser-based checker for spotting LLM cost regressions before coding-agent workflows scale.
 - [QuotaFlow](https://quotaflow.ai/) - Governed AI quota pooling to reduce wasted subscribed capacity.
 - [llmtrim](https://github.com/fkiene/llmtrim) - Local proxy that compresses prompts, tool outputs, and replies before they reach the LLM to cut cost per token; quality-gated so any step that does not save is reverted. Measured -31% input and -74% output tokens across 112 live A/B cases.
+- [CostGoat](https://costgoat.com) - Desktop app that tracks AI and cloud spend from the menubar, with alerts before credits or quotas run out
 
 ---
 
