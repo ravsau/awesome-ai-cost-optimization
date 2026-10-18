@@ -635,6 +635,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [QuotaFlow](https://quotaflow.ai/) - Governed AI quota pooling to reduce wasted subscribed capacity.
 - [llmtrim](https://github.com/fkiene/llmtrim) - Local proxy that compresses prompts, tool outputs, and replies before they reach the LLM to cut cost per token; quality-gated so any step that does not save is reverted. Measured -31% input and -74% output tokens across 112 live A/B cases.
 - [CostGoat](https://costgoat.com) - Desktop app that tracks AI and cloud spend from the menubar, with alerts before credits or quotas run out
+- [AICostBudget AI API Pricing Dataset](https://github.com/aicostbudget/ai-api-pricing-data) - Source-linked JSON/CSV model pricing data for cost estimation and spend analysis.
 
 ---
 
