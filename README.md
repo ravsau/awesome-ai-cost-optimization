@@ -639,6 +639,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [GrabGPU](https://grabgpu.com/) - Cloud GPU prices with live stock from 22 providers, updated every hour; find the cheapest GPU in stock.
 - [Modelglass](https://modelglass.com.au) - Sourced pricing and capability registry across LLM/image/video/audio; find the cheapest model that clears your capability bar.
 - [fitcheck](https://github.com/SIDDARTHAREDDY8/fitcheck) - Know before you rent the GPUs: KV-cache-aware VRAM planner that stops over-provisioned inference spend before it starts
+- [Lantern Works](https://thelanternworks.com/?ref=awesome) - Free GPU rental price comparison (157 rates, 25 vendors) with source links; JSON feed and MCP server.
 
 ---
 
