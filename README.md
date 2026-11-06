@@ -119,6 +119,7 @@ Measure cost per completed task — per resolved ticket, per merged PR — not p
 - [FinOps for AI (FinOps Foundation)](https://www.finops.org/wg/finops-for-ai-overview/) - The official framework; AI is now a formal FinOps technology category. Cost-per-token as a first-class KPI; showback before chargeback.
 - [CloudZero: FinOps for AI](https://www.cloudzero.com/blog/finops-for-ai/) - Why traditional tagging breaks for LLMs and how to capture allocation at the gateway layer instead.
 - [Finout: FinOps for AI agents](https://www.finout.io/blog/finops-for-ai-agents-a-four-step-allocation-framework) - Four-step allocation framework for agentic workloads.
+- [Measure LLM Cost per Successful Task](https://modelflare.dev/articles/llm-cost-per-successful-task) - Define success, fully-loaded cost, and a frozen cohort before measuring unit cost.
 - [OpenMeter](https://github.com/openmeterio/openmeter) - Open source usage metering with first-class token metering; the per-customer margin layer once AI cost is your COGS.
 - [OpenCost](https://github.com/opencost/opencost) - Allocates Kubernetes and vLLM inference spend, including per-token infrastructure cost and KV-cache savings.
 - [Cloud Custodian](https://github.com/cloud-custodian/cloud-custodian) - Policy engine to find and remediate AWS waste, including native Bedrock resource coverage.
