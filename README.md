@@ -628,6 +628,7 @@ Open source tools for AI cost management and the cloud infrastructure underneath
 
 Tools submitted by the community via PR land here first. An entry gets promoted into the curated sections above once it proves out — real adoption, active maintenance, numbers people can verify. Same bar as everything else: it must help someone cut or measure AI spend.
 
+- [Model Ruler Context Window Planner](https://modelruler.dev/use/context-window-planner/) - Budget document, prompt and output tokens; inspect headroom or overflow before choosing a context strategy.
 - [traceAI](https://github.com/future-agi/traceAI) - OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span.
 - [ai-evaluation](https://github.com/future-agi/ai-evaluation) - Eval framework with 50+ metrics, LLM-as-Judge, and guardrail scanners; use to qualify cheaper models against your workload.
 - [FerryAPI](https://www.ferryapi.io/) - OpenAI-compatible gateway with prepaid billing, customer API keys, and usage records.
