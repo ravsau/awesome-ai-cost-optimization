@@ -626,6 +626,8 @@ Open source tools for AI cost management and the cloud infrastructure underneath
 
 ## Community Tools
 
+- [Model Ruler — Agent Loop Cost Calculator](https://modelruler.dev/use/agent-loop-cost-calculator/) - Free, formula-based cost-per-successful-task calculator using loop depth, tokens, and task success rate.
+
 Tools submitted by the community via PR land here first. An entry gets promoted into the curated sections above once it proves out — real adoption, active maintenance, numbers people can verify. Same bar as everything else: it must help someone cut or measure AI spend.
 
 - [traceAI](https://github.com/future-agi/traceAI) - OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span.
