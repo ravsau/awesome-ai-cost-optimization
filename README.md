@@ -640,6 +640,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [Modelglass](https://modelglass.com.au) - Sourced pricing and capability registry across LLM/image/video/audio; find the cheapest model that clears your capability bar.
 - [fitcheck](https://github.com/SIDDARTHAREDDY8/fitcheck) - Know before you rent the GPUs: KV-cache-aware VRAM planner that stops over-provisioned inference spend before it starts
 - [Lantern Works](https://thelanternworks.com/?ref=awesome) - Free GPU rental price comparison (157 rates, 25 vendors) with source links; JSON feed and MCP server.
+- [AI tool prices 2026](https://github.com/AZERIA-IT/ai-tool-pricing-2026) - CSV and JSON list prices of 182 plans across 51 AI creative tools, to compare spend; checked 2026-11-22.
 
 ---
 
