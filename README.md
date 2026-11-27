@@ -643,6 +643,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [European LLM Price Index](https://standardcompute.com/european-llm-price-index) - Per-provider token prices for 20 models, European endpoints marked, cheapest European option where one exists; JSON download.
 - [Model Ruler — Agent Loop Cost Calculator](https://modelruler.dev/use/agent-loop-cost-calculator/) - Free, formula-based cost-per-successful-task calculator using loop depth, tokens, and task success rate.
 - [Mydentify AI Model Cost Calculator](https://mydentify.com/tools/ai-model-cost-calculator) - Compare monthly AI API costs by request volume, token sizes, and prompt caching.
+- [Slancha eval cost playbook](https://github.com/SlanchaAI/eval-cost-playbook) - Free CC BY guide to cheaper evals: adaptive stopping, subset estimation, cascaded judges, caching.
 
 ---
 
