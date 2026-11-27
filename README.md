@@ -640,6 +640,8 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [Modelglass](https://modelglass.com.au) - Sourced pricing and capability registry across LLM/image/video/audio; find the cheapest model that clears your capability bar.
 - [fitcheck](https://github.com/SIDDARTHAREDDY8/fitcheck) - Know before you rent the GPUs: KV-cache-aware VRAM planner that stops over-provisioned inference spend before it starts
 - [Lantern Works](https://thelanternworks.com/?ref=awesome) - Free GPU rental price comparison (157 rates, 25 vendors) with source links; JSON feed and MCP server.
+- [European LLM Price Index](https://standardcompute.com/european-llm-price-index) - Per-provider token prices for 20 models, European endpoints marked, cheapest European option where one exists; JSON download.
+- [Model Ruler — Agent Loop Cost Calculator](https://modelruler.dev/use/agent-loop-cost-calculator/) - Free, formula-based cost-per-successful-task calculator using loop depth, tokens, and task success rate.
 - [Mydentify AI Model Cost Calculator](https://mydentify.com/tools/ai-model-cost-calculator) - Compare monthly AI API costs by request volume, token sizes, and prompt caching.
 
 ---
