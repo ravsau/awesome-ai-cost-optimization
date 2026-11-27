@@ -626,8 +626,6 @@ Open source tools for AI cost management and the cloud infrastructure underneath
 
 ## Community Tools
 
-- [Model Ruler — Agent Loop Cost Calculator](https://modelruler.dev/use/agent-loop-cost-calculator/) - Free, formula-based cost-per-successful-task calculator using loop depth, tokens, and task success rate.
-
 Tools submitted by the community via PR land here first. An entry gets promoted into the curated sections above once it proves out — real adoption, active maintenance, numbers people can verify. Same bar as everything else: it must help someone cut or measure AI spend.
 
 - [traceAI](https://github.com/future-agi/traceAI) - OpenTelemetry-native tracing for LLM and agent apps with 50+ framework integrations; captures token and cost per span.
@@ -643,6 +641,7 @@ Tools submitted by the community via PR land here first. An entry gets promoted 
 - [fitcheck](https://github.com/SIDDARTHAREDDY8/fitcheck) - Know before you rent the GPUs: KV-cache-aware VRAM planner that stops over-provisioned inference spend before it starts
 - [Lantern Works](https://thelanternworks.com/?ref=awesome) - Free GPU rental price comparison (157 rates, 25 vendors) with source links; JSON feed and MCP server.
 - [European LLM Price Index](https://standardcompute.com/european-llm-price-index) - Per-provider token prices for 20 models, European endpoints marked, cheapest European option where one exists; JSON download.
+- [Model Ruler — Agent Loop Cost Calculator](https://modelruler.dev/use/agent-loop-cost-calculator/) - Free, formula-based cost-per-successful-task calculator using loop depth, tokens, and task success rate.
 
 ---
 
